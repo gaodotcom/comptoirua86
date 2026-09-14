@@ -1,0 +1,22 @@
+{# Card anniversaires — contenu intérieur uniquement #}
+{% if birthdays is empty %}
+    <p class="text-secondary mb-0">Aucun anniversaire renseigné.</p>
+{% else %}
+    <ul class="list-group list-group-flush">
+        {% for birthday in birthdays %}
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                <span>
+                    {{ birthday.first_name }} {{ birthday.last_name }}
+                    {% if birthday.days_until == 0 %}<span class="fs-5">🍻</span>{% endif %}
+                </span>
+                <span class="badge {% if birthday.days_until == 0 %}text-bg-warning{% else %}text-bg-primary{% endif %} fw-normal">
+                    {% if birthday.days_until == 0 %}
+                        Aujourd'hui
+                    {% else %}
+                        {{ birthday.next_birthday|date('d/m') }} (J-{{ birthday.days_until }})
+                    {% endif %}
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

@@ -1,0 +1,21 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-person-vcard fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">Modifier l'adhérent</h1>
+                </div>
+                <form method="post" action="{{ page_url('member-edit', {'id': memberId}) }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% include 'components/member-form.twig' with {member: editingMember, memberships: memberMemberships} %}
+                    <button class="btn btn-primary mt-3" type="submit">Enregistrer</button>
+                    <a href="{{ page_url('trombinoscope') }}" class="btn btn-outline-secondary mt-3 ms-2">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

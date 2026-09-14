@@ -1,0 +1,286 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-cloud-download fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">Import HelloAsso</h1>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a href="{{ page_url('helloasso-campaigns') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-gear"></i><span class="d-none d-md-inline ms-1">Campagnes</span></a>
+                    </div>
+                </div>
+
+                {# Sélecteur de campagne + mode #}
+                <form method="get" action="{{ page_url('helloasso-import') }}" class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label" for="campaign_id">Campagne</label>
+                        <select class="form-select form-select-sm" id="campaign_id" name="campaign_id" onchange="this.form.submit()">
+                            {% for c in campaigns %}
+                                <option value="{{ c.id }}" {{ c.id == selectedCampaignId ? 'selected' : '' }}>{{ c.school_year }} ({{ c.slug }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 ps-3">
+                        <label class="form-label">Mode d'import</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="mode" id="modeComplet" value="complet" {{ mode != 'historique' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="form-check-label" for="modeComplet">Complet</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="mode" id="modeHistorique" value="historique" {{ mode == 'historique' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="form-check-label" for="modeHistorique">Historique</label>
+                        </div>
+                    </div>
+                </form>
+
+                {% if mode == 'historique' %}
+                    <div class="alert alert-secondary small py-2">
+                        <i class="bi bi-info-circle me-1"></i>Mode <strong>historique</strong> : seules les adhésions des membres déjà en base sont enregistrées. Aucun nouveau membre n'est créé.
+                    </div>
+                {% endif %}
+
+                {% if error is not null %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Impossible de récupérer les adhésions :
+                        <div class="mt-1 small">{{ error }}</div>
+                    </div>
+                {% elseif plan is not null %}
+
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle me-1"></i>Aperçu (dry-run) : aucune donnée n'est modifiée tant que vous ne cliquez pas sur « Confirmer l'import ».
+                    </div>
+
+                    <p class="text-muted">
+                        Année scolaire <strong>{{ plan.school_year }}</strong>
+                        &middot; Mode <strong>{{ plan.mode }}</strong>
+                    </p>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center">
+                                <div class="fs-4 fw-bold">{{ plan.items }}</div>
+                                <div class="text-muted small">Items reçus</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center">
+                                <div class="fs-4 fw-bold">{{ plan.memberships }}</div>
+                                <div class="text-muted small">Adhésions</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center">
+                                <div class="fs-4 fw-bold text-success">{{ plan.new|length }}</div>
+                                <div class="text-muted small">Nouveaux adhérents</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center">
+                                <div class="fs-4 fw-bold text-primary">{{ plan.existing|length }}</div>
+                                <div class="text-muted small">Déjà en base</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if plan.ignored is not empty %}
+                        <h2 class="h6 mb-2 text-muted"><i class="bi bi-slash-circle me-1"></i>{{ plan.ignored|length }} adhésion(s) ignorée(s) — membre absent de la base</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Adhérent</th>
+                                        <th>Email HelloAsso</th>
+                                        <th class="text-end">Tarif</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in plan.ignored %}
+                                    <tr class="text-muted">
+                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
+                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
+                                        <td class="text-end">{{ format_money(e.fee // 100) }}</td>
+                                        <td class="small">{{ format_date(e.date) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.new is not empty %}
+                        <h2 class="h6 mb-2"><i class="bi bi-person-plus me-1"></i>{{ plan.new|length }} adhérent(s) à créer</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Adhérent</th>
+                                        <th>Naissance</th>
+                                        <th>Email</th>
+                                        <th>Téléphone</th>
+                                        <th>Adresse</th>
+                                        <th class="text-end">Tarif</th>
+                                        <th class="text-end">Don</th>
+                                        <th class="text-center">WhatsApp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in plan.new %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ e.first_name }} {{ e.last_name }}
+                                            <div class="text-muted small">payé par {{ e.payer_first_name }} {{ e.payer_last_name }}</div>
+                                        </td>
+                                        <td class="small">{{ e.date_of_birth ? format_date(e.date_of_birth) : '—' }}</td>
+                                        <td>
+                                            {% if e.email %}
+                                                {{ e.email }}
+                                            {% else %}
+                                                <span class="text-muted fst-italic">—</span>
+                                                {% if e.email_note %}<div class="small text-warning">{{ e.email_note }}</div>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="small">{{ e.phone ? format_phone(e.phone) : '—' }}</td>
+                                        <td class="small">
+                                            {% if e.address %}
+                                                {{ e.address }}<br>{{ e.postal_code }} {{ e.city }}
+                                            {% else %}<span class="text-muted fst-italic">—</span>{% endif %}
+                                        </td>
+                                        <td class="text-end">{{ format_money(e.fee // 100) }}</td>
+                                        <td class="text-end">{{ e.donation > 0 ? format_money(e.donation // 100) : '—' }}</td>
+                                        <td class="text-center">
+                                            {% if e.whatsapp_opt_in %}<i class="bi bi-check2 text-success"></i>{% else %}<i class="bi bi-x text-muted"></i>{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.already_imported is not empty %}
+                        <h2 class="h6 mb-2 text-muted"><i class="bi bi-check2 me-1"></i>{{ plan.already_imported|length }} adhésion(s) déjà enregistrée(s) — non réimportée(s)</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Adhérent</th>
+                                        <th>Email HelloAsso</th>
+                                        <th class="text-end">Adhésion existante</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in plan.already_imported %}
+                                    <tr class="text-muted">
+                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
+                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
+                                        <td class="text-end small">{{ format_money(e.db_fee) }}{% if e.db_donation > 0 %} (+ {{ format_money(e.db_donation) }}){% endif %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.existing is not empty %}
+                        <h2 class="h6 mb-2"><i class="bi bi-check2-circle me-1"></i>{{ plan.existing|length }} adhérent(s) déjà en base</h2>
+                        <p class="text-muted small">La fiche existante n'est pas modifiée. Seule l'adhésion {{ plan.school_year }} est ajoutée ou mise à jour si les montants diffèrent.</p>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Adhérent</th>
+                                        <th>Email HelloAsso</th>
+                                        <th class="text-end">Tarif (base / HA)</th>
+                                        <th class="text-end">Don (base / HA)</th>
+                                        <th>Adhésion</th>
+                                        <th>Diff. fiche</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in plan.existing %}
+                                    <tr>
+                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
+                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
+                                        <td class="text-end small">
+                                            {% if e.membership_exists %}
+                                                {{ format_money(e.db_fee) }} / {{ format_money(e.fee // 100) }}
+                                            {% else %}
+                                                — / {{ format_money(e.fee // 100) }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end small">
+                                            {% if e.membership_exists %}
+                                                {{ format_money(e.db_donation) }} / {{ format_money(e.donation // 100) }}
+                                            {% else %}
+                                                — / {{ format_money(e.donation // 100) }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if e.membership_exists and not e.membership_will_change %}
+                                                <span class="badge text-bg-secondary">déjà à jour</span>
+                                            {% elseif e.membership_exists %}
+                                                <span class="badge text-bg-warning">à mettre à jour</span>
+                                            {% else %}
+                                                <span class="badge text-bg-success">à créer</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small">
+                                            {% if e.field_diffs is empty %}
+                                                <span class="text-muted">—</span>
+                                            {% else %}
+                                                {% for field, diff in e.field_diffs %}
+                                                    <div><span class="text-muted">{{ field }}:</span> {{ diff.db ?: '—' }} &rarr; {{ diff.ha }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if (mode == 'historique' and plan.existing is not empty) or (mode != 'historique' and (plan.new is not empty or plan.existing is not empty)) %}
+                    <form method="post" action="{{ page_url('helloasso-import') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="import">
+                        <input type="hidden" name="campaign_id" value="{{ selectedCampaignId }}">
+                        <input type="hidden" name="mode" value="{{ mode }}">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="confirm" id="confirmImport" value="1" required>
+                            <label class="form-check-label" for="confirmImport">
+                                J'ai vérifié les données ci-dessus et confirme l'import pour {{ plan.school_year }} (mode {{ mode }}).
+                            </label>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <button class="btn btn-success" type="submit">
+                                <i class="bi bi-download me-1"></i>Confirmer l'import
+                            </button>
+                            <span class="text-muted small">
+                                {% if mode == 'historique' %}
+                                    Enregistrera les adhésions {{ plan.school_year }} pour les {{ plan.existing|length }} membre(s) déjà en base. Aucun nouveau membre ne sera créé.
+                                {% else %}
+                                    Créera {{ plan.new|length }} adhérent(s) et enregistrera l'adhésion {{ plan.school_year }} pour {{ plan.memberships }} membre(s).
+                                {% endif %}
+                                La transaction est annulée en cas d'erreur.
+                            </span>
+                        </div>
+                    </form>
+                    {% else %}
+                        <div class="alert alert-secondary">
+                            {% if mode == 'historique' and plan.existing is empty %}
+                                Aucun membre en base ne correspond aux adhésions de cette campagne.
+                            {% else %}
+                                Rien à importer : tous les adhérents sont déjà à jour.
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

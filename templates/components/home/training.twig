@@ -1,0 +1,13 @@
+{# Card entraînement — contenu intérieur uniquement #}
+{% if lastTraining is null %}
+    <p class="text-secondary mb-0">Aucun entraînement publié pour le moment.</p>
+{% else %}
+    <article>
+        <img src="{{ asset_url(lastTraining.image_path) }}" class="img-fluid" alt="Image entraînement">
+        <div class="text-center">
+            <a href="{{ page_url('trainings') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-calendar-week me-2"></i>Les mots du coach
+            </a>
+        </div>
+    </article>
+{% endif %}

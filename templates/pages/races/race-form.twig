@@ -1,0 +1,39 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-signpost-2 fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">{{ isEditing ? 'Modifier la course' : 'Partager une course' }}</h1>
+                </div>
+                <form method="post" action="{{ isEditing ? page_url('race-form', {'id': raceId}) : page_url('race-form') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3"><label class="form-label" for="title">Nom de la course</label><input class="form-control" type="text" id="title" name="title" value="{{ raceTitle }}" required></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="start_date">Date de début</label><input class="form-control" type="date" id="start_date" name="start_date" value="{{ startDate }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="end_date">Date de fin (facultatif)</label><input class="form-control" type="date" id="end_date" name="end_date" value="{{ endDate }}"></div>
+                    </div>
+                    <div class="mb-3 mt-3"><label class="form-label" for="location">Lieu (facultatif)</label><input class="form-control" type="text" id="location" name="location" value="{{ location }}"></div>
+                    <div class="mb-3"><label class="form-label" for="distances">Distances</label><input class="form-control" type="text" id="distances" name="distances" value="{{ distances }}" placeholder="Ex : 10km, semi, marathon" required></div>
+                    <div class="mb-3"><label class="form-label" for="website_url">Lien vers le site de l'organisateur (facultatif)</label><input class="form-control" type="url" id="website_url" name="website_url" value="{{ websiteUrl }}" placeholder="https://..."></div>
+                    <div class="mb-3"><label class="form-label" for="registration_info">Période d'inscription (facultatif)</label><textarea class="form-control" id="registration_info" name="registration_info" rows="3">{{ registrationInfo }}</textarea></div>
+                    {% if isEditing and is_admin() and membersForSelect is not empty %}
+                    <div class="mb-3"><label class="form-label" for="created_by">Adhérent qui a créé la course</label>
+                        <select class="form-select" id="created_by" name="created_by">
+                            <option value="0">— Aucun —</option>
+                            {% for m in membersForSelect %}
+                                <option value="{{ m.id }}" {{ m.id == currentCreatedBy ? 'selected' : '' }}>{{ m.first_name }} {{ m.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <button class="btn btn-success" type="submit">{{ isEditing ? 'Enregistrer' : 'Partager' }}</button>
+                    <a href="{{ page_url('races') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

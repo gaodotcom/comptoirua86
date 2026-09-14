@@ -1,0 +1,151 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-4">
+    <i class="bi bi-person-vcard fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1">{{ isViewingOther ? 'Profil de ' ~ profileUser.first_name ~ ' ' ~ profileUser.last_name : 'Mon profil' }}</h1>
+    {% if isViewingOther %}
+    <div class="flex-shrink-0">
+        {% if is_admin() %}
+        <a href="{{ page_url('member-edit', {'id': profileUser.id}) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i><span class="d-none d-md-inline ms-1">Modifier</span></a>
+        {% if profileUser.id != (user.id ?? 0) %}
+        <form method="post" action="{{ page_url('trombinoscope') }}" onsubmit="return confirm('Supprimer cet adhérent ?');" class="d-inline-flex m-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="delete_member">
+            <input type="hidden" name="member_id" value="{{ profileUser.id }}">
+            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i><span class="d-none d-md-inline ms-1">Supprimer</span></button>
+        </form>
+        {% endif %}
+        {% endif %}
+        <a href="{{ page_url('trombinoscope') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-person-lines-fill"></i><span class="d-none d-md-inline ms-1">Adhérents</span></a>
+    </div>
+    {% elseif is_admin() %}
+    <div class="flex-shrink-0">
+        <a href="{{ page_url('member-edit', {'id': user.id}) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i><span class="d-none d-md-inline ms-1">Modifier</span></a>
+    </div>
+    {% endif %}
+</div>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                {{ render_avatar(profileUser, 200)|raw }}
+                <h1 class="h4 mt-3 mb-1">{{ profileUser.first_name ~ ' ' ~ profileUser.last_name }}</h1>
+                {% if profileUser.username %}
+                    <p class="text-secondary mb-0">Identifiant : {{ profileUser.username }}</p>
+                {% else %}
+                    <p class="text-secondary mb-0 text-warning"><em>Pas encore de nom d'utilisateur</em></p>
+                {% endif %}
+                <p class="text-secondary mb-0">Rôle : {{ role_label(profileUser.role) }}
+                {% if (profileUser.is_bureau ?? 0) == 1 %}
+                    <p class="mb-0"><span class="badge text-bg-primary fw-normal ms-1">{{ bureau_role_label(profileUser.bureau_role ?? '', profileUser.gender ?? '') }}</span></p>
+                {% endif %}
+                {% if (profileUser.is_coach ?? 0) == 1 %}
+                    <p class="mb-0"><span class="badge text-bg-primary fw-normal ms-1">Coach</span></p>
+                {% endif %}
+            </div>
+        </div>
+        {% if not isViewingOther %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Modifier ma photo de profil</h2>
+                <p class="text-secondary">Formats acceptés :<br>JPG, PNG, WEBP, GIF. Taille max: 5 Mo.</p>
+                <form method="post" action="{{ page_url('profile') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="photo">
+                    <div class="mb-3"><input type="file" class="form-control" name="photo" accept="image/jpeg,image/png,image/webp,image/gif" required></div>
+                    <button class="btn btn-success" type="submit">Enregistrer la photo</button>
+                </form>
+                {% if profileUser.photo_path %}
+                <form method="post" action="{{ page_url('profile') }}" onsubmit="return confirm('Supprimer ta photo de profil ?');" class="mt-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="delete_photo">
+                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash me-1"></i>Supprimer ma photo</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-lg-8 mt-0 mt-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Informations personnelles</h2>
+                <p class="text-secondary mb-1">{{ profileUser.address ~ ' - ' ~ profileUser.postal_code ~ ' ' ~ profileUser.city }}</p>
+                <p class="text-secondary mb-1">Email : {{ profileUser.email ~ ' - Téléphone : ' ~ format_phone(profileUser.phone) }}</p>
+                <p class="text-secondary mb-1">Date de naissance : {{ format_date(profileUser.date_of_birth ?? '') }}</p>
+                {% if not isViewingOther %}
+                    <div class="alert alert-warning mb-0 mt-3">Pour faire modifier tes informations personnelles, tu dois contacter un membre du bureau.</div>
+                {% endif %}
+            </div>
+        </div>
+        {% if not isViewingOther %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">
+                    {% if profileUser.username %}
+                        Modifier mon nom d'utilisateur pour la connexion
+                    {% else %}
+                        Créer mon nom d'utilisateur
+                    {% endif %}
+                </h2>
+                <form method="post" action="{{ page_url('profile') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="username">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label" for="username">Nom d'utilisateur</label>
+                        </div>
+                        <div class="col-md-9">
+                            <input class="form-control" id="username" name="username" type="text" value="{{ profileUser.username ?? '' }}" minlength="3" maxlength="30">
+                            <small class="form-text text-muted d-block mt-1">
+                                {% if profileUser.username %}
+                                    3 à 30 caractères
+                                {% else %}
+                                    Laissez vide pour ignorer. 3 à 30 caractères si vous en créez un.
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-primary" type="submit">
+                            {% if profileUser.username %}
+                                Mettre à jour
+                            {% else %}
+                                Créer
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Modifier mon mot de passe</h2>
+                <div class="text-center">
+                    <a class="btn btn-primary" href="{{ page_url('change-password') }}">
+                        Modifier mon mot de passe
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">{{ isViewingOther ? 'Adhésions' : 'Mes adhésions' }}</h2>
+                {% if memberships is empty %}
+                    <p class="text-secondary mb-0">{{ isViewingOther ? 'Aucune adhésion enregistrée.' : 'Tu n\'as actuellement aucune adhésion.' }}</p>
+                {% else %}
+                    <ul class="list-group list-group-flush">
+                        {% for membership in memberships %}
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-calendar-event me-2"></i>{{ membership.school_year }}
+                                <span class="text-secondary small ms-2">Tarif : {{ format_money(membership.fee) }}{% if membership.donation > 0 %} (+ {{ format_money(membership.donation) }}){% endif %}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

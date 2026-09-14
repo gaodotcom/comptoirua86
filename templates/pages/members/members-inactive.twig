@@ -1,0 +1,102 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-2">
+    <i class="bi bi-person-lock fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Adhérents désactivés</h1>
+    <div class="flex-shrink-0">
+        <a href="{{ page_url('active-years') }}" class="btn btn-sm btn-outline-success"><i class="bi bi-calendar-check"></i><span class="d-none d-md-inline ms-1">Saisons actives</span></a>
+        <a href="{{ page_url('trombinoscope') }}" class="btn btn-sm btn-outline-success"><i class="bi bi-person-lines-fill"></i><span class="d-none d-md-inline ms-1">Adhérents</span></a>
+    </div>
+</div>
+<p class="text-muted mb-4">
+    {{ members|length }} adhérent{{ members|length > 1 ? 's' }} désactivé{{ members|length > 1 ? 's' }}
+</p>
+
+{% if members is not empty %}
+<div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+    <span class="d-none d-md-inline text-secondary small">Trier par :</span>
+    <button class="btn btn-sm btn-outline-primary" data-sort="last_name" onclick="sortMembers('last_name', {sortGeneric: true})">Nom <i class="bi bi-arrow-down-up ms-1" data-arrow></i></button>
+    <button class="btn btn-sm btn-outline-primary" data-sort="first_name" onclick="sortMembers('first_name', {sortGeneric: true})">Prénom <i class="bi bi-arrow-down-up ms-1" data-arrow></i></button>
+    <div class="input-group input-group-sm" style="width: 200px;">
+        <input type="search" class="form-control member-search" id="memberSearch" placeholder="Rechercher..." autocomplete="off">
+    </div>
+</div>
+
+<div class="list-group list-group-flush trombi-list trombi-list-top" id="membersList">
+    {% for member in members %}
+        {% set isBureau = (member.is_bureau ?? 0) == 1 %}
+        {% set isTest = (member.generic_account ?? 0) == 1 %}
+        <div class="trombi-item" data-last_name="{{ member.last_name|lower }}" data-first_name="{{ member.first_name|lower }}" data-generic="{{ isTest ? '1' : '0' }}">
+            <div class="card h-100 shadow-sm {{ isTest ? 'bg-body-secondary' : '' }}">
+                <div class="card-body text-center">
+                    {{ render_avatar(member, 200)|raw }}
+                    <div class="trombi-info">
+                        <h2 class="h6 mt-3 mb-1">{{ member.first_name ~ ' ' ~ member.last_name }}</h2>
+                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                            <span class="badge text-bg-danger inactive-badge">inactif</span>
+                            {% if is_admin() %}
+                            <div class="form-check form-switch ms-2 m-0 d-inline-flex">
+                                <input class="form-check-input reactivate-toggle" type="checkbox" data-bs-toggle="collapse" data-bs-target="#reactivate-{{ member.id }}" title="Réactiver">
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if isBureau or (member.role ?? 'adherent') != 'adherent' %}
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            {% if isBureau %}<span class="badge text-bg-primary">{{ bureau_role_label(member.bureau_role ?? '', member.gender ?? '') }}</span>{% endif %}
+                            {% if (member.role ?? 'adherent') != 'adherent' %}<span class="badge text-bg-primary">{{ role_label(member.role) }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% if (member.memberships ?? []) is not empty %}
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                {% for adhesion in member.memberships %}
+                                    <span class="badge text-bg-light border fw-normal text-body-secondary"><i class="bi bi-calendar-event me-1"></i>{{ adhesion.school_year }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if is_admin() %}
+                <div class="card-footer bg-transparent d-flex gap-1 justify-content-center align-items-center">
+                    <a href="{{ page_url('profile', {'id': member.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Voir le profil"><i class="bi bi-person-vcard"></i></a>
+                    <a href="{{ page_url('member-edit', {'id': member.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                </div>
+                {% endif %}
+            </div>
+            {# Formulaire d'ajout d'adhésion (collapse) #}
+            {% if is_admin() %}
+            <div class="collapse mb-4" id="reactivate-{{ member.id }}">
+                <form method="post" action="{{ page_url('inactive-members') }}" class="row g-2 align-items-end p-3 bg-body-tertiary border rounded">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="add_membership">
+                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                    <div class="col-md-4">
+                        <label class="form-label small">Année scolaire</label>
+                        <select class="form-select form-select-sm" name="school_year" required>
+                            {% for sy in activeYears %}
+                                <option value="{{ sy }}">{{ sy }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Tarif (€)</label>
+                        <input class="form-control form-control-sm" name="fee" type="number" step="1" min="0" value="35">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Don (€)</label>
+                        <input class="form-control form-control-sm" name="donation" type="number" step="1" min="0" value="0">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-success btn-sm w-100" type="submit"><i class="bi bi-check2 me-1"></i>Activer</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+<script src="{{ asset_url('public/js/members.js') }}"></script>
+<script>sortMembers('first_name', {sortGeneric: true});</script>
+{% else %}
+<div class="alert alert-info">Aucun ancien membre. Tous les membres ont une adhésion active.</div>
+{% endif %}
+{% endblock %}

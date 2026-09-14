@@ -1,0 +1,129 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="row g-4">
+            {# Menu des ancres #}
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="card shadow-sm" style="position:sticky;top:160px;">
+                    <div class="card-body">
+                        <h2 class="h6 mb-3 text-primary">Sommaire</h2>
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item px-0"><a href="#campagnes" class="text-decoration-none"><i class="bi bi-gear me-2"></i>Campagnes HelloAsso</a></li>
+                            <li class="list-group-item px-0"><a href="#import" class="text-decoration-none"><i class="bi bi-cloud-download me-2"></i>Importer les adhésions</a></li>
+                            <li class="list-group-item px-0"><a href="#saisons" class="text-decoration-none"><i class="bi bi-calendar-check me-2"></i>Saisons actives</a></li>
+                            <li class="list-group-item px-0"><a href="#trombinoscope" class="text-decoration-none"><i class="bi bi-person-rolodex me-2"></i>Trombinoscope</a></li>
+                            <li class="list-group-item px-0"><a href="#saison" class="text-decoration-none"><i class="bi bi-calendar3 me-2"></i>Adhérents par saison</a></li>
+                            <li class="list-group-item px-0"><a href="#desactives" class="text-decoration-none"><i class="bi bi-person-lock me-2"></i>Adhérents désactivés</a></li>
+                            <li class="list-group-item px-0"><a href="#manuel" class="text-decoration-none"><i class="bi bi-person-plus me-2"></i>Ajout manuel</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {# Contenu #}
+            <div class="col-lg-9">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h1 class="h3 mb-4"><i class="bi bi-question-circle ms-1 me-2"></i>Aide à la gestion des adhésions et des adhérents</h1>
+
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-1"></i>Ce guide explique les fonctions accessibles aux administrateurs : import des adhésions HelloAsso, gestion des campagnes, saisons actives, adhérents par saison et anciens adhérents.
+                        </div>
+
+                        <hr class="my-4" id="campagnes">
+                        <h2 class="h5 mb-3"><i class="bi bi-gear me-2 text-primary"></i>Campagnes HelloAsso</h2>
+                        <p>Les campagnes HelloAsso correspondent aux formulaires d'adhésion créés sur HelloAsso, une par année scolaire. Avant de pouvoir importer les adhésions d'une année, il faut enregistrer la campagne correspondante.</p>
+                        <p><strong>Ajouter une campagne :</strong></p>
+                        <ol>
+                            <li>Aller dans le menu admin <em>Campagnes HelloAsso</em>.</li>
+                            <li>Coller l'URL de la page d'adhésion HelloAsso (ex: <code>https://www.helloasso.com/associations/ultramical86/adhesions/adhesion-2026-2027</code>).</li>
+                            <li>Le slug (ex: <code>adhesion-2026-2027</code>) est déduit automatiquement de l'URL. On peut aussi le saisir manuellement.</li>
+                            <li>Saisir l'année scolaire (ex: <code>2026-2027</code>).</li>
+                            <li>Cliquer sur <em>Ajouter</em>.</li>
+                        </ol>
+                        <p>Une campagne ne s'importe pas automatiquement. L'import se fait depuis la page <em>Importer depuis HelloAsso</em>.</p>
+
+                        <hr class="my-4" id="import">
+                        <h2 class="h5 mb-3"><i class="bi bi-cloud-download me-2 text-primary"></i>Importer les adhésions</h2>
+                        <p>L'import récupère toutes les adhésions d'une campagne HelloAsso et les enregistre dans la base : création des adhérents manquants et ajout de leur adhésion pour l'année scolaire.</p>
+
+                        <p><strong>Mode Complet</strong> (par défaut) :</p>
+                        <ul>
+                            <li>Crée les adhérents qui ne sont pas encore en base.</li>
+                            <li>Ajoute l'adhésion pour tous les adhérents (nouveaux et existants).</li>
+                            <li>Récupère les informations saisies dans le formulaire HelloAsso : date de naissance, téléphone, adresse, email, opt-in WhatsApp.</li>
+                            <li>A utiliser pour les saisons récentes (ex: 2025-2026, 2026-2027) où on veut tous les adhérents.</li>
+                        </ul>
+
+                        <p><strong>Mode Historique</strong> :</p>
+                        <ul>
+                            <li>N'ajoute l'adhésion que pour les adhérents <strong>déjà en base</strong>.</li>
+                            <li>Les adhérents non trouvés sont affichés dans une section « ignorés » mais ne sont pas créés.</li>
+                            <li>A utiliser pour les saisons antérieures (ex: 2018 à 2024) pour renseigner l'historique sans créer d'anciens adhérents qui ne sont plus au club.</li>
+                        </ul>
+
+                        <p><strong>Déroulement :</strong></p>
+                        <ol>
+                            <li>Sélectionner la campagne dans le menu déroulant.</li>
+                            <li>Choisir le mode (Complet ou Historique).</li>
+                            <li>L'aperçu s'affiche : nouveaux adhérents, existants, et éventuels ignorés. <strong>Rien n'est encore modifié</strong>.</li>
+                            <li>Vérifier les données affichées (nouveaux adhérents, différences sur les existants).</li>
+                            <li>Cocher la case de confirmation et cliquer sur <em>Confirmer l'import</em>.</li>
+                            <li>L'import s'exécute en une seule transaction : si une erreur survient, rien n'est modifié.</li>
+                        </ol>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-1"></i>Un adhérent désactivé (année non active) qui reprend une adhésion via l'import redevient actif automatiquement. Il n'y a rien à faire manuellement.
+                        </div>
+
+                        <hr class="my-4" id="saisons">
+                        <h2 class="h5 mb-3"><i class="bi bi-calendar-check me-2 text-primary"></i>Saisons actives</h2>
+                        <p>Les saisons actives déterminent qui a accès au site et qui apparaît dans le trombinoscope.</p>
+                        <p><strong>Règle :</strong> un adhérent est actif s'il a une adhésion dans au moins une année cochée. Les administrateurs, coaches et adhérents du bureau sont toujours actifs.</p>
+                        <p><strong>En début de saison :</strong> cocher la nouvelle année (ex: 2026-2027) en plus de l'ancienne (ex: 2025-2026). Les deux restent actives le temps que tout le monde renouvelle. Le trombinoscope affiche un bouton indiquant le nombre d'adhérents en attente de renouvellement pour la nouvelle saison.</p>
+                        <p><strong>En fin de renouvellement :</strong> décocher l'ancienne année (ex: 2025-2026). Les adhérents qui n'ont pas renouvelé deviennent automatiquement inactifs : ils n'ont plus accès au site et n'apparaissent plus dans le trombinoscope. On les retrouve sur la page <em>Adhérents désactivés</em>.</p>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Décocher une année désactive immédiatement les adhérents concernés. Si un adhérent a adhéré les deux saisons, il reste actif tant qu'au moins une de ses saisons est cochée.
+                        </div>
+
+                        <hr class="my-4" id="trombinoscope">
+                        <h2 class="h5 mb-3"><i class="bi bi-person-rolodex me-2 text-primary"></i>Trombinoscope</h2>
+                        <p>Le trombinoscope est la page centrale de gestion des adhérents. Il affiche tous les adhérents actifs avec leur photo, nom, prénom et badges (bureau, coach). Deux modes d'affichage sont disponibles : grille (par défaut) et liste, via les boutons en haut à droite.</p>
+                        <p>On peut trier par nom ou prénom, et faire une recherche par nom. Le choix du mode d'affichage est mémorisé pour les visites suivantes.</p>
+                        <p><strong>Actions disponibles pour les administrateurs :</strong></p>
+                        <ul>
+                            <li><strong>Voir le profil</strong> : ouvre la fiche détaillée de l'adhérent.</li>
+                            <li><strong>Modifier</strong> : ouvre le formulaire d'édition de l'adhérent.</li>
+                            <li><strong>Supprimer</strong> : supprime l'adhérent (avec confirmation). Non disponible pour les comptes génériques (test).</li>
+                        </ul>
+                        <p>Sur la grille, les actions apparaissent au survol de chaque carte. En mode liste, elles sont dans le pied de carte. Sur mobile, seul le bouton « Voir le profil » est visible en mode liste ; le bouton « Modifier » reste accessible depuis la fiche de l'adhérent.</p>
+                        <p><strong>Bouton de renouvellement :</strong> lorsque plusieurs saisons sont actives, un bouton indique le nombre d'adhérents qui n'ont pas encore renouvelé pour la saison la plus récente. Cliquer dessus filtre la liste pour n'afficher que ces adhérents.</p>
+
+                        <hr class="my-4" id="saison">
+                        <h2 class="h5 mb-3"><i class="bi bi-calendar3 me-2 text-primary"></i>Adhérents par saison</h2>
+                        <p>La page <em>Adhérents par saison</em> permet de consulter tous les adhérents qui ont une adhésion pour une année scolaire donnée, qu'ils soient encore actifs ou non.</p>
+                        <p>Sélectionner une année dans le menu déroulant pour afficher la liste. On peut trier par nom ou prénom et faire une recherche. Pour les saisons récentes, depuis 2025-2026, tous les adhérents sont présents. Pour les saisons antérieures importées en mode historique, seuls les adhérents déjà en base apparaissent — les anciens qui ne sont plus au club ne sont pas créés.</p>
+
+                        <hr class="my-4" id="desactives">
+                        <h2 class="h5 mb-3"><i class="bi bi-person-lock me-2 text-primary"></i>Adhérents désactivés</h2>
+                        <p>La page <em>Adhérents désactivés</em> liste tous les adhérents inactifs (sans adhésion dans une année active). On peut y rechercher un ancien adhérent par nom.</p>
+                        <p><strong>Réactiver un ancien adhérent :</strong></p>
+                        <ol>
+                            <li>Activer le bouton de bascule <em>Réactiver</em> à côté du badge « inactif » de l'adhérent.</li>
+                            <li>Un formulaire s'affiche en dessous : choisir l'année scolaire, le tarif et le don.</li>
+                            <li>Cliquer sur <em>Activer</em>. L'adhésion est ajoutée et l'adhérent redevient actif immédiatement.</li>
+                        </ol>
+                        <p>Cela sert pour les paiements hors HelloAsso (chèque, espèces, virement) ou pour réactiver un adhérent qui a oublié de renouveler.</p>
+
+                        <hr class="my-4" id="manuel">
+                        <h2 class="h5 mb-3"><i class="bi bi-person-plus me-2 text-primary"></i>Ajouter un adhérent manuellement</h2>
+                        <p>Si un adhérent n'est pas passé par HelloAsso (ou pour une adhésion gratuite), on peut le créer manuellement depuis le <em>Trombinoscope</em> avec le bouton <em>Ajouter un adhérent</em>. Il faut ensuite lui ajouter une adhésion depuis sa fiche (section <em>Ajouter une adhésion</em>).</p>
+                        <p>L'adhérent pourra se connecter avec son email et sa date de naissance (format jjmmaaaa) comme mot de passe par défaut. Il devra ensuite définir son propre mot de passe.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

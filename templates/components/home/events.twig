@@ -1,0 +1,31 @@
+{# Card agenda — contenu intérieur uniquement #}
+{% if upcomingEvents is empty %}
+    <p class="text-secondary mb-0">Aucun événement programmé.</p>
+{% else %}
+    <ul class="list-group list-group-flush">
+        {% for event in upcomingEvents %}
+            {% if event.published or is_admin() %}
+            <li class="list-group-item px-0">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-calendar-event me-2"></i>
+                    <div class="flex-grow-1">
+                        <span class="fw-semibold me-1">{{ event.title }}</span>
+                        <span class="badge text-secondary border border-secondary-subtle fw-normal">
+                            {{ format_date(event.start_date) }}
+                            {% if event.end_date %} &rarr; {{ format_date(event.end_date) }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% if event.location %}
+                <div class="ms-4">
+                    <span class="small"><i class="bi bi-geo-alt me-1"></i>{{ event.location }}</span>
+                </div>
+                {% endif %}
+            </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <div class="text-center mt-2">
+        <a href="{{ page_url('events') }}" class="btn btn-primary btn-sm"><i class="bi bi-calendar3 me-2"></i>Tous les événements</a>
+    </div>
+{% endif %}

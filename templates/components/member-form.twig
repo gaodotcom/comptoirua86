@@ -1,0 +1,165 @@
+{% set member = member ?? null %}
+{% set role = member.role ?? 'adherent' %}
+{% set gender = member.gender ?? '' %}
+{% set isBureau = (member.is_bureau ?? 0) == 1 %}
+{% set bureauRole = member.bureau_role ?? '' %}
+{% set formUid = member is not null ? 'm' ~ (member.id ?? 0) : 'mnew' %}
+{% set bureauRoles = ['Président(e)', 'Vice-président(e)', 'Trésorier(ère)', 'Trésorier(ère) adjoint(e)', 'Secrétaire', 'Secrétaire adjoint(e)'] %}
+{% set roles = {'adherent': 'Adhérent', 'coach': 'Coach', 'bureau': 'Bureau', 'admin': 'Administrateur'} %}
+
+<div class="row g-2">
+    <div class="col-md-6 pe-md-4">
+        <div class="mb-3">
+            <label class="form-label" for="last_name">Nom</label>
+            <input class="form-control form-control-sm" id="last_name" name="last_name" value="{{ member.last_name ?? '' }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="first_name">Prénom</label>
+            <input class="form-control form-control-sm" id="first_name" name="first_name" value="{{ member.first_name ?? '' }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="username">Nom d'utilisateur (facultatif)</label>
+            <input class="form-control form-control-sm" id="username" name="username" value="{{ member.username ?? '' }}" minlength="3" maxlength="30">
+            <small class="form-text text-muted d-block mt-1">3 à 30 caractères</small>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="photo-panel rounded border p-3 mb-3">
+            <label class="form-label" for="photo">Photo de profil</label>
+            <div class="mb-3 text-center">
+                {{ render_avatar(member ?? {'first_name': '', 'last_name': '', 'photo_path': ''}, 120)|raw }}
+            </div>
+            <input class="form-control form-control-sm" id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif">
+            {% if member is not null and (member.photo_path ?? '') is not empty %}
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" value="1" id="delete_photo" name="delete_photo">
+                <label class="form-check-label" for="delete_photo">Supprimer la photo actuelle</label>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="w-100"></div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="gender">Sexe (facultatif)</label>
+        <select class="form-select form-select-sm" id="gender" name="gender">
+            <option value="">Non spécifié</option>
+            <option value="M" {{ gender == 'M' ? 'selected' : '' }}>Masculin</option>
+            <option value="F" {{ gender == 'F' ? 'selected' : '' }}>Féminin</option>
+        </select>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="date_of_birth">Date de naissance</label>
+        <input class="form-control form-control-sm" id="date_of_birth" type="date" name="date_of_birth" value="{{ member.date_of_birth ?? '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-control form-control-sm" id="email" type="email" name="email" value="{{ member.email ?? '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="phone">Téléphone</label>
+        <input class="form-control form-control-sm" id="phone" name="phone" value="{{ member.phone ?? '' }}">
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="address">Adresse</label>
+        <input class="form-control form-control-sm" id="address" name="address" value="{{ member.address ?? '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="postal_code">Code postal</label>
+        <input class="form-control form-control-sm" id="postal_code" name="postal_code" value="{{ member.postal_code ?? '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="city">Ville</label>
+        <input class="form-control form-control-sm" id="city" name="city" value="{{ member.city ?? '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="role">Rôle au Comptoir</label>
+        <select class="form-select form-select-sm" id="role" name="role" required>
+            {% for roleKey, roleText in roles %}
+                <option value="{{ roleKey }}" {{ roleKey == role ? 'selected' : '' }}>{{ roleText }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <hr class="my-4">
+    <div class="col-12">
+        <p class="fw-semibold mb-3">Informations complémentaires</p>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="whatsapp_opt_in" name="whatsapp_opt_in" {{ (member.whatsapp_opt_in ?? 0) == 1 ? 'checked' : '' }}>
+            <label class="form-check-label" for="whatsapp_opt_in">Inscrit au groupe WhatsApp <i class="bi bi-whatsapp me-1"></i></label>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="generic_account" name="generic_account" {{ (member.generic_account ?? 0) == 1 ? 'checked' : '' }}>
+            <label class="form-check-label" for="generic_account">Compte générique Ultramical86</label>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="is_coach" name="is_coach" {{ (member.is_coach ?? 0) == 1 ? 'checked' : '' }}>
+            <label class="form-check-label" for="is_coach">Coach</label>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="is_bureau_{{ formUid }}" name="is_bureau" {{ isBureau ? 'checked' : '' }} onchange="document.getElementById('bureau_role_wrap_{{ formUid }}').style.display = this.checked ? 'block' : 'none';">
+            <label class="form-check-label" for="is_bureau_{{ formUid }}">Membre du bureau</label>
+        </div>
+    </div>
+    <div class="col-4" id="bureau_role_wrap_{{ formUid }}" style="display: {{ isBureau ? 'block' : 'none' }};">
+        <label class="form-label" for="bureau_role">Rôle au sein du bureau (facultatif)</label>
+        <select class="form-select form-select-sm" id="bureau_role" name="bureau_role">
+            <option value="">— Choisir —</option>
+            {% for bRole in bureauRoles %}
+                <option value="{{ bRole }}" {{ bRole == bureauRole ? 'selected' : '' }}>{{ bRole }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <hr class="my-4">
+    <div class="col-12">
+        <h3 class="h6 mb-3 fw-bold">Adhésions</h3>
+        {% if memberships is defined and memberships is not empty %}
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-normal">Année</th>
+                            <th class="fw-normal text-end">Tarif</th>
+                            <th class="fw-normal text-end">Don</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membership in memberships %}
+                            <tr>
+                                <td class="fw-semibold">{{ membership.school_year }}</td>
+                                <td class="text-end">{{ format_money(membership.fee) }}</td>
+                                <td class="text-end">{{ format_money(membership.donation) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted small mb-3">Aucune adhésion enregistrée.</p>
+        {% endif %}
+    </div>
+    <div class="col-12">
+        <h3 class="h6 mb-2">Ajouter une adhésion</h3>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label" for="school_year">Année scolaire</label>
+        <select class="form-select form-select-sm" id="school_year" name="school_year">
+            <option value="">— Aucune —</option>
+            {% for sy in get_all_school_years() %}
+                <option value="{{ sy }}">{{ sy }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label" for="fee">Tarif (€)</label>
+        <input class="form-control form-control-sm" id="fee" name="fee" type="number" step="1" min="0" value="0">
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label" for="donation">Don (€)</label>
+        <input class="form-control form-control-sm" id="donation" name="donation" type="number" step="1" min="0" value="0">
+    </div>
+</div>

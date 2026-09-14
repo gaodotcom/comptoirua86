@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ruleset name="Adherents">
+    <description>Standard de codage du Comptoir des adhérents (PSR12 adapté)</description>
+
+    <!-- Fichiers à analyser -->
+    <file>app</file>
+    <file>controllers</file>
+    <file>index.php</file>
+
+    <!-- Exclusions -->
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>*/uploads/*</exclude-pattern>
+
+    <!-- Base : PSR12 -->
+    <rule ref="PSR12">
+        <!-- Le projet utilise des fonctions globales (pas de classes),
+             on n'impose pas strictement la limite de longueur -->
+        <exclude name="PSR1.Classes.ClassDeclaration"/>
+        <!-- Le projet met declare(strict_types=1) avant le docblock,
+             contrairement à l'ordre PSR12 (docblock d'abord) -->
+        <exclude name="PSR12.Files.FileHeader.IncorrectOrder"/>
+    </rule>
+
+    <!-- config.php charge le .env, bootstrap.php démarre la session, twig.php
+         configure l'environnement. Tous trois définissent aussi des fonctions.
+         C'est un pattern intentionnel pour des fichiers de bootstrap. -->
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>app/config.php</exclude-pattern>
+        <exclude-pattern>app/bootstrap.php</exclude-pattern>
+        <exclude-pattern>app/twig.php</exclude-pattern>
+    </rule>
+
+    <!-- Le projet utilise 4 espaces (déjà conforme PSR12) -->
+    <!-- Autoriser les lignes un peu plus longues (SQL, tableaux) -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="140"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+    </rule>
+
+    <!-- Ignorer les fichiers de templates Twig et vendor -->
+    <rule ref="Generic.Files.LowercasedFilename"/>
+    <exclude-pattern>*/templates/*</exclude-pattern>
+</ruleset>

@@ -1,0 +1,24 @@
+parameters:
+    level: 5
+
+    paths:
+        - app
+        - controllers
+        - index.php
+
+    excludePaths:
+        - vendor/*
+
+    # Les fonctions globales utilisent app_pdo(), app_config(), current_user(), etc.
+    # PHPStan ne peut pas toujours inférer le type de retour de ces helpers.
+    ignoreErrors:
+        # Accès à $_SERVER, $_SESSION, $_POST, $_GET — normal en PHP procédural
+        - '#Access to an undefined property#'
+        - '#Cannot access property .* on#'
+        # Les contrôleurs sont inclus via render_page() qui définit $user avant l'include.
+        # PHPStan analyse chaque fichier isolément et ne voit pas cette variable.
+        -
+            message: '#Variable \$user might not be defined#'
+            path: controllers/*
+
+    reportUnmatchedIgnoredErrors: false

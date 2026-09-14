@@ -1,0 +1,77 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-2">
+    <i class="bi bi-person-rolodex fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Le trombinoscope des ultramicalistes</h1>
+    {% if is_admin() %}<div class="flex-shrink-0"><a href="{{ page_url('member-add') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-person-plus"></i><span class="d-none d-md-inline ms-1">Ajouter un adhérent</span></a></div>{% endif %}
+</div>
+<p class="text-muted mb-2 d-flex flex-md-row flex-column gap-1 mb-4">
+    {% for yc in yearCounts %}<span>{{ yc.count }} adhérent{{ yc.count > 1 ? 's' }} en {{ yc.year }}</span>{% if not loop.last %}<span class="d-none d-md-inline">, </span>{% endif %}{% endfor %}{% if yearCounts|length > 1 %}<span><span class="d-none d-md-inline">— </span>{{ activeCount }} au total</span>{% endif %}
+</p>
+{% if renewalPending and renewalPending.count > 0 and can_view_detailed_members() %}
+<div class="d-inline-block mb-3">
+    <button class="btn btn-danger btn-sm p-2 text-white" id="renewalFilter" onclick="toggleRenewalFilter()" title="{{ renewalPending.count }} adhérent{{ renewalPending.count > 1 ? 's' }} en attente de renouvellement pour {{ renewalPending.year }}">
+        <i class="bi bi-hourglass-split me-1" id="renewalFilterIcon"></i><strong>{{ renewalPending.count }}</strong> non renouvelé{{ renewalPending.count > 1 ? 's' }} pour <strong>{{ renewalPending.year }}</strong>
+    </button>
+</div>
+{% endif %}
+<div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+    <span class="d-none d-md-inline text-secondary small">Trier par :</span>
+    <button class="btn btn-sm btn-outline-primary" data-sort="last_name" onclick="sortMembers('last_name')">Nom <i class="bi bi-arrow-down-up ms-1" data-arrow></i></button>
+    <button class="btn btn-sm btn-outline-primary" data-sort="first_name" onclick="sortMembers('first_name')">Prénom <i class="bi bi-arrow-down-up ms-1" data-arrow></i></button>
+    <div class="input-group input-group-sm" style="width: 200px;">
+        <input type="search" class="form-control member-search" id="memberSearch" placeholder="Rechercher..." autocomplete="off">
+    </div>
+    <div class="btn-group btn-group-sm ms-auto" role="group">
+        <button type="button" class="btn btn-primary active" id="viewCards" onclick="setView('cards')"><i class="bi bi-grid"></i></button>
+        <button type="button" class="btn btn-outline-primary" id="viewList" onclick="setView('list')"><i class="bi bi-list"></i></button>
+    </div>
+</div>
+<div class="row g-3 trombi-cards" id="membersList">
+{% for member in members %}
+    {% set isBureau = (member.is_bureau ?? 0) == 1 %}
+    {% set isTest = (member.generic_account ?? 0) == 1 %}
+    <div class="col-12 col-md-6 col-lg-4 trombi-item" data-last_name="{{ member.last_name|lower }}" data-first_name="{{ member.first_name|lower }}" data-renewal="{{ member.id in renewalPendingIds ? '1' : '0' }}">
+        <div class="card h-100 shadow-sm {{ isTest ? 'bg-body-secondary' : '' }}">
+            <div class="card-body text-center">
+                {% set canViewProfile = can_view_detailed_members() or member.id == (user.id ?? 0) %}
+                {% if canViewProfile %}<a href="{{ page_url('profile', member.id == (user.id ?? 0) ? {} : {'id': member.id}) }}" class="text-decoration-none">{% endif %}
+                {{ render_avatar(member, 200)|raw }}
+                {% if canViewProfile %}</a>{% endif %}
+                <div class="trombi-info">
+                    <h2 class="h6 mt-3 mb-1">{% if canViewProfile %}<a href="{{ page_url('profile', member.id == (user.id ?? 0) ? {} : {'id': member.id}) }}" class="text-decoration-none text-body">{% endif %}{{ member.first_name ~ ' ' ~ member.last_name }}{% if canViewProfile %}</a>{% endif %}</h2>
+                    {% if isBureau %}
+                        <span class="badge text-bg-primary">{{ bureau_role_label(member.bureau_role ?? '', member.gender ?? '') }}</span>
+                    {% endif %}
+                    {% if (member.is_coach ?? 0) == 1 %}
+                        <span class="badge text-bg-primary">Coach</span>
+                    {% endif %}
+                    {% if member.id == (user.id ?? 0) %}
+                        <a href="{{ page_url('profile') }}" class="badge text-bg-success text-decoration-none"><i class="bi bi-camera me-1"></i>{{ user.photo_path ? 'Modifier ma photo' : 'Ajouter ma photo' }}</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if can_view_detailed_members() %}
+            <div class="card-footer bg-transparent d-flex gap-1 justify-content-center">
+                <a href="{{ page_url('profile', {'id': member.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Voir le profil"><i class="bi bi-person-vcard"></i></a>
+                {% if is_admin() %}
+                <a href="{{ page_url('member-edit', {'id': member.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                {% if not isTest %}
+                <form method="post" action="{{ page_url('trombinoscope') }}" onsubmit="return confirm('Supprimer cet adhérent ?');" class="d-inline-flex m-0">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="delete_member">
+                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}
+</div>
+<script src="{{ asset_url('public/js/members.js') }}"></script>
+<script src="{{ asset_url('public/js/trombinoscope.js') }}"></script>
+<script>sortMembers('first_name');</script>
+{% endblock %}

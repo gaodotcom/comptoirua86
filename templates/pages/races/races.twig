@@ -1,0 +1,119 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-4">
+    <i class="bi bi-rocket-takeoff fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Les courses des ultramicalistes</h1>
+    <div class="flex-shrink-0">
+        <a class="btn btn-sm {{ mineOnly ? 'btn-success' : 'btn-outline-success' }}" href="{{ page_url('races', mineOnly ? {} : {'filter': 'mine'}) }}"><i class="bi bi-funnel"></i><span class="d-none d-md-inline ms-1">Mes courses</span></a>
+        <a class="btn btn-outline-success btn-sm" href="{{ page_url('race-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter une course</span></a>
+    </div>
+</div>
+{% if upcomingRaceCards is empty and pastRaceCards is empty %}
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucune course partagée pour le moment.</div>
+{% else %}
+    {% if upcomingRaceCards is not empty %}
+        <div class="row g-4 mb-4">
+            {% for card in upcomingRaceCards %}
+                {% set race = card.race %}{% set responses = card.responses %}{% set myResponse = card.myResponse %}{% set canEdit = card.canEdit %}
+                <div class="col-12 col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header page-card-header bg-white d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-start gap-2">
+                                {% if race.website_url is not empty %}<img src="https://icons.duckduckgo.com/ip3/{{ race.website_url|replace({'https://':''})|replace({'http://':''})|split('/')[0] }}.ico" class="rounded mt-1" width="24" height="24" alt="">{% endif %}
+                                <span class="fs-4" style="line-height:1.2;">{{ race.title }}</span>
+                            </div>
+                            {% if canEdit %}
+                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                    <a href="{{ page_url('race-form', {'id': race.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" action="{{ page_url('races') }}" onsubmit="return confirm('Supprimer cette course ?');" class="d-inline-flex m-0">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="delete_race">
+                                        <input type="hidden" name="race_id" value="{{ race.id }}">
+                                        <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-1 flex-wrap text-secondary small mb-3">
+                                <span class="me-3"><i class="bi bi-calendar-event me-1"></i>{{ format_date(race.start_date) }}{% if race.end_date is not empty %} → {{ format_date(race.end_date) }}{% endif %}</span>
+                                {% if race.location is not empty %}<span class="me-3"><i class="bi bi-geo-alt me-1"></i>{{ race.location }}</span>{% endif %}
+                                <span class="me-3"><i class="bi bi-signpost-2 me-1"></i>{{ race.distances }}</span>
+                                {% if race.author_first_name is not empty %}<span class="d-flex align-items-center gap-1">{{ render_avatar({'first_name': race.author_first_name, 'last_name': race.author_last_name, 'photo_path': race.author_photo_path ?? ''}, 24)|raw }}{{ race.author_first_name ~ ' ' ~ race.author_last_name }}</span>{% endif %}
+                            </div>
+                            {% if race.registration_info is not empty %}<p class="small text-secondary mb-3"><i class="bi bi-info-circle me-1"></i>Inscriptions : {{ race.registration_info }}</p>{% endif %}
+                            <div class="d-flex gap-2 flex-wrap align-items-center">
+                                {% if race.website_url is not empty %}<a href="{{ race.website_url }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm mb-3 me-2"><i class="bi bi-box-arrow-up-right me-1"></i>Site web</a>{% endif %}
+                                <div class="d-flex gap-2 ms-auto mb-3">
+                                    <form method="post" action="{{ page_url('races') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="set_response"><input type="hidden" name="race_id" value="{{ race.id }}"><input type="hidden" name="status" value="interested"><button class="btn btn-sm {{ myResponse == 'interested' ? 'btn-success' : 'btn-outline-success' }}" type="submit"><i class="bi bi-hand-thumbs-up me-1"></i>Intéressé</button></form>
+                                    <form method="post" action="{{ page_url('races') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="set_response"><input type="hidden" name="race_id" value="{{ race.id }}"><input type="hidden" name="status" value="registered"><button class="btn btn-sm {{ myResponse == 'registered' ? 'btn-success' : 'btn-outline-success' }}" type="submit"><i class="bi bi-check2-circle me-1"></i>Inscrit</button></form>
+                                </div>
+                            </div>
+                        </div>
+                        {% if responses.interested|length > 0 or responses.registered|length > 0 %}
+                            <div class="card-footer bg-white">
+                                <div class="g-3">
+                                    {% if responses.registered|length > 0 %}
+                                        <div class="mb-2">
+                                            <span class="small fw-semibold"><i class="bi bi-check2-circle me-1"></i>Inscrits ({{ responses.registered|length }}) :</span>
+                                            <span class="small">{% for member in responses.registered %}{{ member.first_name ~ ' ' ~ member.last_name }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if responses.interested|length > 0 %}
+                                        <div class="mb-2">
+                                            <span class="small fw-semibold"><i class="bi bi-hand-thumbs-up me-1"></i>Intéressés ({{ responses.interested|length }}) :</span>
+                                            <span class="small">{% for member in responses.interested %}{{ member.first_name ~ ' ' ~ member.last_name }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if pastRaceCards is not empty %}
+        <h2 class="h4 text-secondary mb-3 fw-semibold">Les courses passées</h2>
+        <div class="row g-3">
+            {% for card in pastRaceCards %}
+                {% set race = card.race %}{% set responses = card.responses %}{% set canEdit = card.canEdit %}
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div>
+                                    {% if race.website_url is not empty %}<img src="https://icons.duckduckgo.com/ip3/{{ race.website_url|replace({'https://':''})|replace({'http://':''})|split('/')[0] }}.ico" class="rounded me-1" width="20" height="20" alt="">{% endif %}
+                                    <strong>{{ race.title }}</strong>
+                                    <span class="badge text-bg-light border fw-normal ms-2">{{ format_date(race.start_date) }}{% if race.end_date is not empty %} → {{ format_date(race.end_date) }}{% endif %}</span>
+                                    {% if race.location is not empty %}<span class="small ms-2"><i class="bi bi-geo-alt me-1"></i>{{ race.location }}</span>{% endif %}
+                                    <span class="small ms-2"><i class="bi bi-signpost-2 me-1"></i>{{ race.distances }}</span>
+                                    {% if responses.registered|length > 0 %}
+                                        <span class="small ms-2"><i class="bi bi-check2-circle me-1"></i>{{ responses.registered|length }} inscrit{% if responses.registered|length > 1 %}s{% endif %} :</span>
+                                        <span class="small">{% for m in responses.registered %}{{ m.first_name ~ ' ' ~ m.last_name }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+                                    {% endif %}
+                                </div>
+                                {% if canEdit %}
+                                    <div class="d-flex gap-2 align-items-center flex-shrink-0">
+                                        <a href="{{ page_url('race-form', {'id': race.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="post" action="{{ page_url('races') }}" onsubmit="return confirm('Supprimer cette course ?');" class="d-inline-flex m-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="action" value="delete_race">
+                                            <input type="hidden" name="race_id" value="{{ race.id }}">
+                                            <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

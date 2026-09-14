@@ -1,0 +1,36 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-4">
+    <i class="bi bi-megaphone fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Les actualités</h1>
+    {% if is_admin() %}<div class="flex-shrink-0"><a class="btn btn-outline-success btn-sm" href="{{ page_url('news-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter</span></a></div>{% endif %}
+</div>
+{% if allNews is empty %}
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucune actualité pour le moment.</div>
+{% else %}
+    <div class="row g-4">
+    {% for newsItem in allNews %}
+        {% set isPublished = newsItem.published == 1 %}
+        {% if isPublished or is_admin() %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100 {{ isPublished ? '' : 'bg-body-secondary' }}">
+                <div class="card-header page-card-header bg-white">
+                    <span class="fs-5"><i class="bi bi-newspaper me-2"></i>{{ newsItem.title }}{% if not isPublished %} <span class="badge text-bg-secondary fw-normal">Brouillon</span>{% endif %}</span>
+                </div>
+                <div class="card-body">
+                    <div class="overflow-hidden small">{{ newsItem.content|text_to_html|raw }}</div>
+                </div>
+                {% if is_admin() %}
+                <div class="card-footer bg-transparent d-flex gap-1 justify-content-end">
+                    <form method="post" action="{{ page_url('news') }}" class="d-inline-flex m-0"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="toggle_published"><input type="hidden" name="news_id" value="{{ newsItem.id }}"><button class="btn btn-outline-secondary btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="{{ isPublished ? 'Dépublier' : 'Publier' }}"><i class="bi bi-{{ isPublished ? 'eye-slash' : 'eye' }}"></i></button></form>
+                    <a href="{{ page_url('news-form', {'id': newsItem.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                    <form method="post" action="{{ page_url('news') }}" onsubmit="return confirm('Supprimer cette actualité ?');" class="d-inline-flex m-0"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_news"><input type="hidden" name="news_id" value="{{ newsItem.id }}"><button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button></form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

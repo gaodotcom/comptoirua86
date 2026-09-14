@@ -1,0 +1,20 @@
+{# Card actualités — contenu intérieur uniquement #}
+<div class="row">
+    {% for newsItem in publishedNews %}
+        <div class="col-12 p-0">
+            <div class="card border-0">
+                <div class="card-body py-2">
+                    <h2 class="h6 mb-1 fw-semibold"><i class="bi bi-newspaper me-2"></i>{{ newsItem.title }}</h2>
+                    <div class="small ms-4 overflow-hidden">{{ newsItem.content|text_to_html|raw }}</div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% if totalPublishedNews > 3 %}
+    <div class="text-center mt-3">
+        <a href="{{ page_url('news') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-newspaper me-2"></i>Toutes les infos
+        </a>
+    </div>
+{% endif %}

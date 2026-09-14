@@ -1,0 +1,33 @@
+{# Card courses — contenu intérieur uniquement #}
+{% if upcomingRaces is empty %}
+    <p class="text-secondary mb-0">Aucune course programmée.</p>
+{% else %}
+    <ul class="list-group list-group-flush">
+        {% for race in upcomingRaces %}
+            <li class="list-group-item px-0">
+                <div class="d-flex align-items-start">
+                    {% if race.website_url is not empty %}
+                        <img src="https://icons.duckduckgo.com/ip3/{{ race.website_url|replace({'https://':''})|replace({'http://':''})|split('/')[0] }}.ico" class="rounded me-2" width="20" height="20" alt="">
+                    {% else %}
+                        <i class="bi bi-flag me-2"></i>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <span class="fw-semibold me-1">{{ race.title }}</span>
+                        <span class="badge text-secondary border border-secondary-subtle fw-normal">
+                            {{ format_date(race.start_date) }}
+                            {% if race.end_date %} &rarr; {{ format_date(race.end_date) }}{% endif %}
+                        </span>
+                        {% if race.registered_names is not empty %}
+                            <div class="small text-muted mt-1"><i class="bi bi-check2-circle me-1"></i>{{ race.registered_names }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="text-center mt-3">
+        <a href="{{ page_url('races') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-rocket-takeoff me-2"></i>Toutes les courses
+        </a>
+    </div>
+{% endif %}

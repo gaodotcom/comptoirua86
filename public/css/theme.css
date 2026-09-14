@@ -1,0 +1,579 @@
+/* ============================================================================
+   Espace Adhérents - Thème global
+   ============================================================================ */
+
+:root {
+  /* Couleurs primaires */
+  --bg-top: #f4f7fb;
+  --bg-bottom: #eef8f4;
+  --brand: #0a92b4;
+  --brand-soft: #dcfce7;
+  
+  /* Couleurs Bootstrap */
+  --bs-primary: #0a92b4;
+  --bs-primary-rgb: 10, 146, 180;
+  --bs-secondary: #347E99;
+  --bs-secondary-rgb: 52, 126, 153;
+  --bs-success: #347E99;
+  --bs-success-rgb: 52, 126, 153;
+
+  /* Typographie & Texte */
+  --ink: #111827;
+  --muted: #4b5563;
+  
+  /* Composants */
+  --card-border: #d1d5db;
+  --icon-size: 1rem;
+}
+
+/* ============================================================================
+   Surcharge des classes Bootstrap avec les couleurs du thème
+   ============================================================================ */
+
+/* Couleurs */
+.text-primary { color: var(--bs-primary) !important; }
+.border-primary { border-color: var(--bs-primary) !important; }
+.bg-primary { background-color: var(--bs-primary) !important; }
+
+.text-secondary { color: var(--bs-secondary) !important; }
+.border-secondary { border-color: var(--bs-secondary) !important; }
+.bg-secondary { background-color: var(--bs-secondary) !important; }
+
+.text-bg-success {
+  color: #fff !important;
+  background-color: rgba(var(--bs-success-rgb), var(--bs-bg-opacity, 1)) !important;
+}
+
+/* Boutons */
+.btn-primary,
+.btn-success {
+  --bs-btn-bg:  var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-secondary);
+  --bs-btn-hover-border-color: var(--bs-secondary);
+  --bs-btn-active-bg: var(--bs-secondary);
+  --bs-btn-active-border-color: var(--bs-secondary);
+  --bs-btn-disabled-bg: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+}
+
+.btn-outline-primary,
+.btn-outline-success {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+  --bs-btn-disabled-color: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+}
+.border-primary-subtle {
+  border-color: rgba(var(--bs-primary-rgb), 0.5) !important;
+}
+.border-secondary-subtle {
+  border-color: rgba(var(--bs-secondary-rgb), 0.5) !important;
+}
+.border-success-subtle {
+  border-color: rgba(var(--bs-success-rgb), 0.5) !important;
+}
+/* Titres */
+.h2,
+.home-card-header {
+  color: var(--bs-primary);
+  font-weight: 700;
+}
+
+.page-card-header,
+.home-card-header {
+  background-color: rgba(10, 146, 180, 0.1) !important;
+
+}
+/* Liens */
+a {
+    color: rgba(var(--bs-secondary-rgb), var(--bs-link-opacity, 1));
+    text-decoration: underline;
+}
+
+a:hover {
+    color: rgba(var(--bs-primary-rgb), var(--bs-link-opacity, 1));
+}
+/* ============================================================================
+   Font & Body
+   ============================================================================ */
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  color: var(--ink);
+  background: #f0f7fa;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(10, 146, 180, 0.12) 0, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+main, footer, nav {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================================
+   Navbar & Brand
+   ============================================================================ */
+
+.navbar-brand {
+  letter-spacing: 0.03em;
+  font-weight: 700;
+}
+
+.brand-pill {
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Navbar custom avec fond primary */
+.navbar.bg-primary {
+  background-color: rgba(var(--bs-primary-rgb)) !important;
+}
+
+.navbar.bg-primary .nav-link {
+    color: white !important;
+}
+
+.navbar.bg-primary .nav-link:hover,
+.navbar.bg-primary .nav-link:focus {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.navbar.bg-primary .nav-link.active {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+}
+
+.navbar.bg-primary .navbar-toggler-icon {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.navbar.bg-primary .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* Dropdown dans navbar primary - fond blanc */
+.navbar.bg-primary .dropdown-menu {
+    background-color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.navbar.bg-primary .dropdown-item {
+    color: var(--bs-secondary) !important;
+    transition: all 0.15s ease-in-out;
+    border-left: 3px solid transparent;
+    padding-left: 1.25rem;
+}
+
+.navbar.bg-primary .dropdown-item:hover,
+.navbar.bg-primary .dropdown-item:focus {
+    background-color: rgba(10, 146, 180, 0.1) !important;
+    color: var(--bs-primary) !important;
+    border-left-color: var(--bs-primary);
+}
+
+.navbar.bg-primary .dropdown-item i {
+    color: var(--bs-primary) !important;
+    font-size: var(--icon-size);
+    width: 1.25rem;
+    text-align: center;
+}
+
+.navbar.bg-primary .dropdown-item.text-danger i {
+    color: #dc2626;
+}
+
+.navbar.bg-primary .dropdown-divider {
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.navbar.bg-primary .dropdown-item.text-danger:hover,
+.navbar.bg-primary .dropdown-item.text-danger:focus {
+    background-color: #fee2e2;
+    border-left-color: #dc2626;
+}
+
+/* Badge dans navbar */
+.navbar.bg-primary .badge.text-bg-secondary {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+/* Dropdown général (hors navbar primary) */
+.dropdown-menu {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+    transition: all 0.15s ease-in-out;
+    border-left: 3px solid transparent;
+    padding-left: 1.25rem;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #f0f9ff;
+    border-left-color: var(--bs-primary);
+}
+
+.dropdown-item i {
+    font-size: var(--icon-size);
+    color: var(--bs-primary);
+    width: 1.25rem;
+    text-align: center;
+}
+
+.navbar-nav .dropdown-toggle::after {
+    margin-left: 0.5rem;
+}
+
+/* ============================================================================
+   Cards
+   ============================================================================ */
+
+.card {
+  border-color: var(--card-border);
+  backdrop-filter: blur(3px);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card-header {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================================
+   Avatars
+   ============================================================================ */
+
+.avatar-placeholder {
+  background: linear-gradient(135deg, #fef3c7, #d1fae5);
+  color: #92400e;
+  font-size: 72px;
+}
+
+/* members detailed */
+.members-detailed-list .avatar-placeholder {
+  font-size: 24px;
+}
+
+/* avatar 24px (courses, etc.) */
+.avatar-placeholder[style*="width:24px"] { font-size: 9px; }
+.avatar-placeholder[style*="width:32px"] { font-size: 12px; }
+.avatar-placeholder[style*="width:60px"] { font-size: 22px; }
+.avatar-placeholder[style*="width:120px"] { font-size: 42px; }
+/* ============================================================================
+   Tables
+   ============================================================================ */
+
+.table thead th {
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Liens rapides
+   ============================================================================ */
+
+.list-group-item-action {
+  border-left: 3px solid transparent !important;
+  transition: all 0.2s ease-in-out;
+  padding-left: calc(1.25rem - 3px);
+}
+
+.list-group-item-action:hover {
+  background-color: #f0f9ff;
+  border-left-color: var(--bs-primary) !important;
+}
+
+.list-group-item-action i {
+  font-size: var(--icon-size);
+  color: var(--bs-primary);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Navbar — logo */
+.navbar-brand img { height: 70px; }
+
+
+@media (min-width: 992px) {
+    .w-lg-auto { width: auto !important; }
+}
+
+@media (max-width: 576px) {
+  /* Logo plus petit sur mobile */
+  .navbar-brand img { height: 40px !important; }
+  .navbar-brand { font-size: 0.85rem; }
+  .navbar-brand .fs-4 { font-size: 0.85rem !important; }
+
+  .list-group-item {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    font-size: 0.95rem;
+  }
+
+  /* Card-header : titre et boutons qui se tassent proprement */
+  .card-header { flex-wrap: wrap; gap: 0.5rem; }
+  .card-header .btn { margin-top: 0.25rem; }
+  .card-header .fs-4 { font-size: 1.1rem !important; }
+  .card-header .fs-5 { font-size: 1rem !important; }
+
+  /* Navbar mobile : texte plus petit */
+  .navbar .fs-3 { font-size: 1rem !important; }
+}
+
+@media (max-width: 1199.98px) {
+  /* Menu mobile : items de niveau 2 (menu user dans le volet) */
+  .nav-sub-item {
+    border-bottom: 0 !important;
+    padding: 0.25rem 1rem !important;
+    margin-left: 1.5rem;
+  }
+
+}
+
+/* Members-detailed : avatar plus petit et césure des emails sur mobile */
+@media (max-width: 767.98px) {
+    .members-detailed-list img,
+    .members-detailed-list .avatar-placeholder {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .members-detailed-list .avatar-placeholder { font-size: 16px; }
+    .members-detailed-list a[href^="mailto:"] {
+        word-break: break-all;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Trombinoscope : vue liste */
+.trombi-list .trombi-item {
+    margin-bottom: 0 !important;
+}
+.trombi-list .trombi-item .card {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    border: 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    border-radius: 0;
+}
+.trombi-list.trombi-list-top .trombi-item .card-body > a,
+.trombi-list.trombi-list-top .trombi-item .card-body img,
+.trombi-list.trombi-list-top .trombi-item .card-body .avatar-placeholder {
+    align-self: flex-start;
+}
+.trombi-list .trombi-item .card-body {
+    text-align: left !important;
+    flex: 1;
+    min-w-0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+}
+.trombi-list .trombi-item .card-body img,
+.trombi-list .trombi-item .card-body .avatar-placeholder {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 18px !important;
+    flex-shrink: 0;
+}
+.trombi-list .trombi-item .card-body h2 {
+    margin: 0 0 0.125rem 0 !important;
+    display: block;
+    font-size: 0.95rem !important;
+}
+.trombi-list .trombi-item .card-body .trombi-info {
+    flex: 1;
+    min-w-0;
+}
+.trombi-list .trombi-item .card-footer {
+    border: 0;
+    background: transparent;
+    flex-shrink: 0;
+    padding: 0.25rem 0.75rem;
+}
+@media (max-width: 767.98px) {
+    .trombi-list .trombi-item .card-body img,
+    .trombi-list .trombi-item .card-body .avatar-placeholder {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 12px !important;
+    }
+    .trombi-list .trombi-item .badge.text-bg-success {
+        font-size: 0;
+        padding: 0.3rem;
+    }
+    .trombi-list .trombi-item .badge.text-bg-success i {
+        font-size: 0.8rem;
+        margin-right: 0 !important;
+    }
+    /* Mobile liste : masquer pencil et trash, garder seulement le profil */
+    .trombi-list .trombi-item .card-footer form,
+    .trombi-list .trombi-item .card-footer a.btn-outline-primary:not(:first-child) {
+        display: none !important;
+    }
+}
+
+/* ============================================================================
+   Recherche membres
+   ============================================================================ */
+
+.member-search {
+  border-color: var(--bs-primary);
+  background-color: transparent !important;
+  color: var(--bs-primary);
+}
+
+.member-search::placeholder {
+  color: rgba(var(--bs-primary-rgb), 0.6);
+}
+
+.member-search:focus,
+.season-select:focus {
+  color: var(--ink);
+}
+
+.input-group:has(.member-search) .input-group-text {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: white;
+}
+
+.season-select {
+  border-color: var(--bs-primary);
+  background-color: transparent !important;
+  color: var(--bs-primary);
+}
+
+.member-search:focus,
+.season-select:focus,
+.btn:focus,
+.btn:focus-visible {
+  border-color: var(--bs-secondary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Switch de réactivation (page adhérents désactivés) */
+.reactivate-toggle {
+  border-color: var(--bs-primary);
+}
+.reactivate-toggle:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+.reactivate-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* ============================================================================
+   Panneau photo (member-form)
+   ============================================================================ */
+
+.photo-panel {
+  border-color: var(--card-border);
+}
+
+@media (max-width: 767.98px) {
+  .photo-panel {
+    border: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* Césure des longs liens dans les actualités */
+.card-body a {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Bouton retour en haut (desktop uniquement) */
+.form-label { font-weight: 600; }
+
+/* Alertes avec icône : alignement du texte à droite de l'icône */
+.alert > i.bi:first-child {
+    margin-top: 0.125rem;
+}
+.alert:has(> i.bi:first-child) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+#scrollTop {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+@media (max-width: 767.98px) {
+    #scrollTop { width: 36px !important; height: 36px !important; bottom: 20px !important; right: 20px !important; }
+    #scrollTop i { font-size: 0.9rem !important; }
+}
+#scrollTop:hover {
+    transform: scale(1.1);
+    background-color: var(--bs-primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================================
+   Fin du thème
+   ============================================================================ */
+
+/* Scroll fluide + offset pour ancres sous navbar fixe */
+html { scroll-behavior: smooth; scroll-padding-top: 150px; }
+
+/* Sélection de texte */
+::selection {
+  background-color: rgba(var(--bs-primary-rgb), 0.2);
+  color: var(--ink);
+}
+
+/* Badges plus doux */
+.badge { border-radius: 0.4rem; }
+
+/* Cards cliquables : hover subtil (uniquement si la card entière est un lien) */
+a > .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Scrollbar discrète (desktop) */
+@media (min-width: 992px) {
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(var(--bs-primary-rgb), 0.3);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.5);
+  }
+}

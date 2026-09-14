@@ -1,0 +1,27 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-clipboard2-pulse fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">Modifier la semaine d'entraînement</h1>
+                </div>
+                <form method="post" action="{{ page_url('training-edit', {'id': trainingId}) }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="week_start">Début de semaine</label><input class="form-control" type="date" id="week_start" name="week_start" value="{{ training.week_start }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="title">Titre</label><input class="form-control" type="text" id="title" name="title" value="{{ training.title }}" required></div>
+                        <div class="col-12"><label class="form-label" for="presentation_text">Texte de présentation</label><textarea class="form-control" id="presentation_text" name="presentation_text" rows="5" required>{{ training.presentation_text }}</textarea></div>
+                        <div class="col-12"><label class="form-label">Image actuelle</label><div class="mb-2"><img src="{{ asset_url(training.image_path) }}" alt="Image actuelle" class="img-thumbnail" style="max-height: 200px;"></div><label class="form-label" for="image">Remplacer l'image (facultatif)</label><input class="form-control" type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp,image/gif"><div class="form-text">Laissez vide pour conserver l'image actuelle.</div></div>
+                        <div class="col-12"><label class="form-label" for="comment_text">Commentaire (facultatif)</label><textarea class="form-control" id="comment_text" name="comment_text" rows="3">{{ training.comment_text ?? '' }}</textarea></div>
+                    </div>
+                    <button class="btn btn-success mt-4" type="submit">Enregistrer</button>
+                    <a href="{{ page_url('trainings') }}" class="btn btn-outline-secondary mt-4 ms-2">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

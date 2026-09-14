@@ -1,0 +1,10 @@
+{# Card liens utiles — contenu intérieur uniquement #}
+<div class="list-group list-group-flush">
+    <a href="{{ config.facebook_url }}" target="_blank" rel="noopener" class="list-group-item list-group-item-action"><i class="bi bi-facebook me-2"></i>Facebook</a>
+    <a href="{{ config.instagram_url }}" target="_blank" rel="noopener" class="list-group-item list-group-item-action"><i class="bi bi-instagram me-2"></i>Instagram</a>
+    <a href="{{ config.helloasso_url }}" target="_blank" rel="noopener" class="list-group-item list-group-item-action"><i class="bi bi-credit-card me-2"></i>Adhésions HelloAsso</a>
+    <a href="{{ config.web_url }}" target="_blank" rel="noopener" class="list-group-item list-group-item-action"><i class="bi bi-globe me-2"></i>Site web ultramical86.net</a>
+    {% if config.mail_contact %}
+    <a href="mailto:{{ config.mail_contact }}" target="_blank" rel="noopener" class="list-group-item list-group-item-action"><i class="bi bi-envelope me-2"></i>Contact par mail</a>
+    {% endif %}
+</div>

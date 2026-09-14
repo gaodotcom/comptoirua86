@@ -1,0 +1,74 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-4">
+    <i class="bi bi-calendar2-week fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1">Les séances du coach</h1>
+    {% if can_manage_trainings() %}
+        <div class="flex-shrink-0"><a class="btn btn-outline-success btn-sm" href="{{ page_url('training-form') }}"><i class="bi bi-calendar-plus"></i><span class="d-none d-md-inline ms-1">Publier une semaine d'entraînement</span></a></div>
+    {% endif %}
+</div>
+{% if allTrainings is empty %}
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucun entraînement publié pour le moment.</div>
+{% else %}
+    <div class="row g-4 mb-4">
+        {% set training = allTrainings[0] %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header page-card-header bg-white d-flex align-items-baseline align-items-md-center gap-2">
+                    <i class="bi bi-clipboard2-pulse fs-4 me-1 flex-shrink-0"></i>
+                    <span class="fs-4 flex-grow-1">{{ training.title }} <span class="fw-normal">({{ format_date(training.week_start) }})</span></span>
+                    {% if can_manage_trainings() %}
+                        <div class="flex-shrink-0 d-flex flex-column flex-md-row align-items-end align-items-md-center gap-1 gap-md-2">
+                            <a href="{{ page_url('training-edit', {'id': training.id}) }}" class="btn btn-outline-success btn-sm py-0 px-1" title="Modifier"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ page_url('trainings') }}" onsubmit="return confirm('Supprimer cet entraînement ?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_training"><input type="hidden" name="training_id" value="{{ training.id }}">
+                                <button class="btn btn-outline-danger btn-sm py-0 px-1" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <p>{{ training.presentation_text|nl2br }}</p>
+                        </div>
+                        <div class="col-lg-6"><img src="{{ asset_url(training.image_path) }}" class="img-fluid rounded" alt="Image entraînement"></div>
+                        <div class="col-lg-6 offset-lg-6">
+                            {% if training.comment_text is not empty %}<div class="alert alert-warning mb-0"><div>{{ training.comment_text|nl2br }}</div></div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h4 text-secondary mb-3 fw-semibold">Les semaines précédentes</h2>
+    {% if allTrainings|length > 1 %}
+    <div class="row g-4">
+        {% for training in allTrainings|slice(1) %}
+            <div class="col-12 col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header page-card-header bg-white d-flex align-items-baseline align-items-md-center gap-2">
+                        <i class="bi bi-clipboard2-pulse {{ loop.index <= 3 ? 'fs-5' : 'fs-6' }} me-1 flex-shrink-0"></i>
+                        <span class="{{ loop.index <= 3 ? 'fs-5' : 'fs-6' }} flex-grow-1">{{ training.title }}</span>
+                        {% if can_manage_trainings() %}
+                            <div class="flex-shrink-0 d-flex flex-column flex-md-row align-items-end align-items-md-center gap-1 gap-md-1">
+                                <a href="{{ page_url('training-edit', {'id': training.id}) }}" class="btn btn-outline-success btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="{{ page_url('trainings') }}" onsubmit="return confirm('Supprimer cet entraînement ?');" class="d-inline-flex m-0">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_training"><input type="hidden" name="training_id" value="{{ training.id }}">
+                                    <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <img src="{{ asset_url(training.image_path) }}" class="img-fluid rounded" alt="Image entraînement">
+                        {% if loop.index <= 3 and training.comment_text is not empty %}<div class="alert alert-warning mt-3 mb-0"><div>{{ training.comment_text|nl2br }}</div></div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

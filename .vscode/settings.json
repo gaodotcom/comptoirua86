@@ -1,0 +1,9 @@
+{
+    "phpCodeSniffer.standard": "phpcs.xml",
+    "phpCodeSniffer.executablesFolder": "vendor/bin",
+    "phpCodeSniffer.lintOnType": true,
+    "phpCodeSniffer.ignorePatterns": [
+        "vendor/*",
+        "public/uploads/*"
+    ]
+}

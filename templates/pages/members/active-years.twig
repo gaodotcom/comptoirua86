@@ -1,0 +1,71 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-calendar-check fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">Saisons actives</h1>
+                </div>
+
+                <p class="text-muted">
+                    Un adhérent est <strong>actif</strong> s'il a une adhésion dans au moins une saison cochée.
+                    Les inactifs n'ont plus accès au site, n'apparaissent plus dans le trombinoscope ni la liste des adhérents.
+                    Les administrateurs, coaches et membres du bureau sont toujours actifs.
+                </p>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <div class="border rounded p-2 text-center">
+                            <div class="fs-4 fw-bold text-success">{{ activeCount }}</div>
+                            <div class="text-muted small">Année(s) active(s)</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2 text-center">
+                            <div class="fs-4 fw-bold">{{ totalActiveMembers }}</div>
+                            <div class="text-muted small">Adhérent(s) actif(s)</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if years is not empty %}
+                    <form method="post" action="{{ page_url('active-years') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="save">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width:60px">Active</th>
+                                        <th>Saison</th>
+                                        <th class="text-end">Adhérents</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for y in years %}
+                                    <tr class="{{ y.active ? '' : 'opacity-50' }}">
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="checkbox" name="years[]" value="{{ y.year }}" {{ y.active ? 'checked' : '' }}>
+                                        </td>
+                                        <td class="fw-semibold">{{ y.year }}</td>
+                                        <td class="text-end">{{ y.member_count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button class="btn btn-success" type="submit"><i class="bi bi-check2 me-1"></i>Enregistrer</button>
+                            <span class="text-muted small">Décocher une saison désactive immédiatement les adhérents qui n'ont pas renouvelé.</span>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="text-muted">Aucune saison en base. Importez d'abord des adhésions via HelloAsso.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

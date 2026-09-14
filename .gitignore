@@ -1,0 +1,7 @@
+.env
+.env_*
+vendor/
+public/uploads/*
+!public/uploads/.gitkeep
+.vibe/
+sonar-scanner/

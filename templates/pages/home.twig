@@ -1,0 +1,88 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+
+{# Bandeau de bienvenue #}
+<section class="mb-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h1 class="h4 mb-2">Salut {{ user.first_name }} {{ is_feminine(user.gender) ? '🏃‍♀️' : '🏃🏻' }}</h1>
+            <p class="mb-0">{{ config.home_welcome_text }}</p>
+        </div>
+    </div>
+</section>
+
+{# En desktop (lg+) : training à gauche (col-7), tout le reste empilé à droite (col-5) #}
+{# En tablette/mobile : training en col-12, puis 4 cards en col-md-6 #}
+<section class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% include 'components/home/training.twig' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        {# Infos — seulement si publié, en desktop empilé dans la colonne droite #}
+        {% if publishedNews is not empty %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header home-card-header bg-white d-flex align-items-center justify-content-between">
+                <strong>Les infos 📢</strong>
+                {% if is_admin() %}<a href="{{ page_url('news') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Gérer les actualités"><i class="bi bi-pencil"></i></a>{% endif %}
+            </div>
+            <div class="card-body">
+                {% include 'components/home/news.twig' %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# 4 cards : empilées en desktop (col-12), 2 par ligne en tablette (col-md-6) #}
+        {# On englobe dans un row qui ne s'active qu'en dessous de lg #}
+        <div class="row g-4 d-lg-block mt-lg-4">
+            {% if racesCount > 0 %}
+            <div class="col-12 col-md-6 col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header home-card-header bg-white d-flex align-items-center justify-content-between">
+                        <strong>Les prochaines courses 🏃🏻</strong>
+                        {% if is_admin() %}<a href="{{ page_url('races') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Gérer les courses"><i class="bi bi-pencil"></i></a>{% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% include 'components/home/races.twig' %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if eventsCount > 0 %}
+            <div class="col-12 col-md-6 col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header home-card-header bg-white d-flex align-items-center justify-content-between">
+                        <strong>L'agenda UA86 📆</strong>
+                        {% if is_admin() %}<a href="{{ page_url('events') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Gérer les événements"><i class="bi bi-pencil"></i></a>{% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% include 'components/home/events.twig' %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="col-12 col-md-6 col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header home-card-header bg-white"><strong>Les prochains anniversaires 🍾🎉</strong></div>
+                    <div class="card-body">
+                        {% include 'components/home/birthdays.twig' %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header home-card-header bg-white"><strong>Les liens utiles 🔗</strong>
+                    </div>
+                    {% include 'components/home/links.twig' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-calendar-event fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">{{ isEditing ? 'Modifier l\'événement' : 'Ajouter un événement' }}</h1>
+                </div>
+                <form method="post" action="{{ isEditing ? page_url('event-form', {'id': eventId}) : page_url('event-form') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3"><label class="form-label" for="title">Titre</label><input class="form-control" type="text" id="title" name="title" value="{{ eventTitle }}" required></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="start_date">Date de début</label><input class="form-control" type="date" id="start_date" name="start_date" value="{{ startDate }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="end_date">Date de fin (facultatif)</label><input class="form-control" type="date" id="end_date" name="end_date" value="{{ endDate }}"></div>
+                    </div>
+                    <div class="mb-3 mt-3"><label class="form-label" for="location">Lieu (facultatif)</label><input class="form-control" type="text" id="location" name="location" value="{{ location }}"></div>
+                    <div class="mb-3"><label class="form-label" for="description">Description (facultatif)</label><textarea class="form-control" id="description" name="description" rows="4">{{ description }}</textarea></div>
+                    <div class="form-check mb-3"><input class="form-check-input" type="checkbox" value="1" id="published" name="published" {{ published ? 'checked' : '' }}><label class="form-check-label" for="published">Publier cet événement</label></div>
+                    <button class="btn btn-success mt-4" type="submit">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+                    <a href="{{ page_url('events') }}" class="btn btn-outline-secondary mt-4 ms-2">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

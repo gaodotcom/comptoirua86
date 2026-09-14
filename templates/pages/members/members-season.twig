@@ -1,0 +1,81 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-2">
+    <i class="bi bi-person-video2 fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Adhérents saison {{ selectedYear }}</h1>
+    <div class="flex-shrink-0">
+        <a href="{{ page_url('trombinoscope') }}" class="btn btn-sm btn-outline-success"><i class="bi bi-person-lines-fill"></i><span class="d-none d-md-inline ms-1">Adhérents</span></a>
+    </div>
+</div>
+{% if selectedYear %}<p class="text-muted mb-4">{{ members|length }} adhérent{{ members|length > 1 ? 's' }} en {{ selectedYear }}</p>{% endif %}
+
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle me-1"></i>Seuls les adhérents présents dans la base (adhérents depuis 2025-2026) apparaissent ici. Pour les saisons antérieures, cette liste ne reflète que les membres déjà connus, et non l'ensemble des adhérents de cette époque.
+</div>
+
+{# Sélecteur d'année + tri + recherche alignés #}
+<div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+    <form method="get" action="{{ page_url('season-members') }}" class="d-flex align-items-center gap-2">
+        <select class="form-select form-select-sm season-select" id="year" name="year" onchange="this.form.submit()" style="width:auto;">
+            {% for yc in yearCounts %}
+                <option value="{{ yc.year }}" {{ yc.year == selectedYear ? 'selected' : '' }}>{{ yc.year }} ({{ yc.count }})</option>
+            {% endfor %}
+        </select>
+    </form>
+    <span class="d-none d-md-inline text-secondary small">Trier par :</span>
+    <button class="btn btn-sm btn-outline-primary" data-sort="last_name" onclick="sortMembers('last_name', {sortGeneric: true})">Nom <i class="bi bi-arrow-down-up ms-1" data-arrow></i></button>
+    <button class="btn btn-sm btn-outline-primary" data-sort="first_name" onclick="sortMembers('first_name', {sortGeneric: true})">Prénom <i class="bi bi-arrow-down-up ms-1" data-arrow></i></button>
+    <div class="input-group input-group-sm" style="width: 200px;">
+        <input type="search" class="form-control member-search" id="memberSearch" placeholder="Rechercher..." autocomplete="off">
+    </div>
+</div>
+
+{% if members is empty %}
+    <div class="alert alert-info">Aucun adhérent pour cette saison.</div>
+{% else %}
+<div class="list-group list-group-flush trombi-list trombi-list-top" id="membersList">
+    {% for member in members %}
+        {% set isBureau = (member.is_bureau ?? 0) == 1 %}
+        {% set isTest = (member.generic_account ?? 0) == 1 %}
+        <div class="trombi-item" data-last_name="{{ member.last_name|lower }}" data-first_name="{{ member.first_name|lower }}" data-generic="{{ isTest ? '1' : '0' }}">
+            <div class="card h-100 shadow-sm {{ isTest ? 'bg-body-secondary' : '' }}">
+                <div class="card-body text-center">
+                    {{ render_avatar(member, 200)|raw }}
+                    <div class="trombi-info">
+                        <h2 class="h6 mt-3 mb-1">{{ member.first_name ~ ' ' ~ member.last_name }}</h2>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if isBureau %}<span class="badge text-bg-primary">{{ bureau_role_label(member.bureau_role ?? '', member.gender ?? '') }}</span>{% endif %}
+                            {% if (member.is_coach ?? 0) == 1 %}<span class="badge text-bg-primary">Coach</span>{% endif %}
+                            {% if (member.role ?? 'adherent') != 'adherent' %}<span class="badge text-bg-primary">{{ role_label(member.role) }}</span>{% endif %}
+                        </div>
+                        {% if (member.memberships ?? []) is not empty %}
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                {% for adhesion in member.memberships %}
+                                    <span class="badge text-bg-light border fw-normal text-body-secondary"><i class="bi bi-calendar-event me-1"></i>{{ adhesion.school_year }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if is_admin() %}
+                <div class="card-footer bg-transparent d-flex gap-1 justify-content-center">
+                    <a href="{{ page_url('profile', {'id': member.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Voir le profil"><i class="bi bi-person-vcard"></i></a>
+                    <a href="{{ page_url('member-edit', {'id': member.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                    {% if not isTest %}
+                    <form method="post" action="{{ page_url('season-members') }}" onsubmit="return confirm('Supprimer cet adhérent ?');" class="d-inline-flex m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="delete_member">
+                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                        <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<script src="{{ asset_url('public/js/members.js') }}"></script>
+<script>sortMembers('first_name', {sortGeneric: true});</script>
+{% endif %}
+{% endblock %}
