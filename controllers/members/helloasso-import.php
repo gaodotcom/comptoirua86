@@ -25,8 +25,6 @@ if ($campaigns === []) {
 
 // Campagne sélectionnée : via POST (preview/import) ou GET (?campaign_id=).
 $selectedCampaignId = (int) ($_POST['campaign_id'] ?? $_GET['campaign_id'] ?? 0);
-// Mode "complet" (import de la campagne) ou "historique" (toutes les années).
-$mode = ($_POST['mode'] ?? $_GET['mode'] ?? 'complet') === 'historique' ? 'historique' : 'complet';
 
 // Par défaut, sélectionne la première campagne (la plus récente).
 if ($selectedCampaignId === 0) {
@@ -44,6 +42,17 @@ foreach ($campaigns as $c) {
 if ($selectedCampaign === null) {
     set_flash('danger', 'Campagne introuvable.');
     redirect_to('helloasso-campaigns');
+}
+
+// Mode "complet" (import de la campagne) ou "adhesion" (adhésions des membres déjà en base).
+// Par défaut : "complet" pour une saison active, "adhesion" pour une saison inactive.
+// Le mode peut être forcé via GET/POST pour changer le comportement.
+$seasonActive = is_school_year_active((string) $selectedCampaign['school_year']);
+$explicitMode = $_POST['mode'] ?? $_GET['mode'] ?? null;
+if ($explicitMode === 'complet' || $explicitMode === 'adhesion') {
+    $mode = $explicitMode;
+} else {
+    $mode = $seasonActive ? 'complet' : 'adhesion';
 }
 
 $error = null;
@@ -71,7 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 set_flash('warning', 'Import annulé : aucune modification enregistrée (transaction rollback).');
             } else {
-                set_flash('success', sprintf('Import terminé : %d adhérent(s) créé(s), %d adhésion(s) mise(s) à jour pour %s.', $result['created'], $result['updated'], $plan['school_year']));
+                set_flash(
+                    'success',
+                    sprintf(
+                        'Import terminé : %d adhérent(s) créé(s), %d adhésion(s) mise(s) à jour pour %s.',
+                        $result['created'],
+                        $result['updated'],
+                        $plan['school_year']
+                    )
+                );
             }
             redirect_to('trombinoscope');
         } catch (Throwable $e) {
@@ -95,5 +112,7 @@ twig_render('pages/members/helloasso-import.twig', [
     'error' => $error,
     'campaigns' => $campaigns,
     'selectedCampaignId' => $selectedCampaignId,
+    'selectedCampaign' => $selectedCampaign,
+    'seasonActive' => $seasonActive,
     'mode' => $mode,
 ]);

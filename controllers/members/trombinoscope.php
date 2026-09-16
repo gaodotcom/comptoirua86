@@ -35,4 +35,14 @@ $yearCounts = get_active_year_counts();
 $activeCount = count_active_members();
 $renewalPending = get_renewal_pending();
 $renewalPendingIds = $renewalPending ? get_renewal_pending_ids() : [];
-twig_render('pages/members/trombinoscope.twig', ['title' => 'Trombinoscope', 'members' => $members, 'yearCounts' => $yearCounts, 'activeCount' => $activeCount, 'renewalPending' => $renewalPending, 'renewalPendingIds' => $renewalPendingIds]);
+twig_render(
+    'pages/members/trombinoscope.twig',
+    [
+    'title' => 'Trombinoscope',
+    'members' => $members,
+    'yearCounts' => $yearCounts,
+    'activeCount' => $activeCount,
+    'renewalPending' => $renewalPending,
+    'renewalPendingIds' => $renewalPendingIds,
+    ]
+);

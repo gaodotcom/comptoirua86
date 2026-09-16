@@ -59,7 +59,8 @@ function validate_race_payload(array $payload): array
 /**
  * Crée une nouvelle course.
  *
- * @param array $payload Données du formulaire (title, start_date, end_date, location, distances, website_url, registration_info, created_by)
+ * @param array $payload Données du formulaire (title, start_date, end_date,
+ *                       location, distances, website_url, registration_info, created_by)
  *
  * @return void
  *

@@ -25,18 +25,28 @@
                     {% set startWeekday = firstDay|date('N') %}
                     {% set pastDays = {} %}
                     {% for ev in pastEvents %}
-                        {% set d = ev.start_date|slice(0, 10) %}
-                        {% if d|slice(0, 7) == year ~ '-' ~ month %}
-                            {% set pastDays = pastDays|merge({('d' ~ d|slice(8, 2)): true}) %}
-                        {% endif %}
+                        {% set startD = ev.start_date|slice(0, 10) %}
+                        {% set endD = ev.end_date is not empty ? ev.end_date|slice(0, 10) : startD %}
+                        {% set diff = date(endD).diff(date(startD)) %}
+                        {% for i in 0..diff.days %}
+                            {% set currentDay = date(startD)|date_modify('+' ~ i ~ ' days')|date('Y-m-d') %}
+                            {% if currentDay|slice(0, 7) == year ~ '-' ~ month %}
+                                {% set pastDays = pastDays|merge({('d' ~ currentDay|slice(8, 2)): true}) %}
+                            {% endif %}
+                        {% endfor %}
                     {% endfor %}
                     {% set upcomingDays = {} %}
                     {% for ev in upcomingEvents %}
                         {% if ev.published or is_admin() %}
-                        {% set d = ev.start_date|slice(0, 10) %}
-                        {% if d|slice(0, 7) == year ~ '-' ~ month %}
-                            {% set upcomingDays = upcomingDays|merge({('d' ~ d|slice(8, 2)): true}) %}
-                        {% endif %}
+                        {% set startD = ev.start_date|slice(0, 10) %}
+                        {% set endD = ev.end_date is not empty ? ev.end_date|slice(0, 10) : startD %}
+                        {% set diff = date(endD).diff(date(startD)) %}
+                        {% for i in 0..diff.days %}
+                            {% set currentDay = date(startD)|date_modify('+' ~ i ~ ' days')|date('Y-m-d') %}
+                            {% if currentDay|slice(0, 7) == year ~ '-' ~ month %}
+                                {% set upcomingDays = upcomingDays|merge({('d' ~ currentDay|slice(8, 2)): true}) %}
+                            {% endif %}
+                        {% endfor %}
                         {% endif %}
                     {% endfor %}
                     <div class="d-flex align-items-center justify-content-between mb-2">

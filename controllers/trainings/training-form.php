@@ -37,10 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Valeur par défaut : le lundi de la semaine courante.
-$defaultWeek = (new DateTimeImmutable('monday this week'))->format('Y-m-d');
+// Valeur par défaut : le prochain lundi, ou aujourd'hui si on est déjà lundi.
+$today = new DateTimeImmutable('today');
+$defaultDate = $today->format('N') === '1' ? $today : new DateTimeImmutable('next monday');
+$defaultWeek = $defaultDate->format('Y-m-d');
+$defaultTitle = 'Semaine ' . $defaultDate->format('W');
 
 twig_render('pages/trainings/training-form.twig', [
     'title' => 'Publier une semaine',
     'defaultWeek' => $defaultWeek,
+    'defaultTitle' => $defaultTitle,
 ]);

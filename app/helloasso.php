@@ -688,9 +688,12 @@ function helloasso_load_member_indexes(string $schoolYear): array
  * écraser leur fiche existante).
  *
  * @param string $slug        Slug de la campagne HelloAsso
- * @param string $mode        Mode d'import : 'complet' (crée les membres manquants) ou 'historique' (ignore les non-trouvés)
+ * @param string $mode        Mode d'import : 'complet' (crée les membres manquants)
+ *                            ou 'adhesion' (ignore les non-trouvés)
  *
- * @return array{items: int, memberships: int, donations: int, orders: int, new: array, existing: array, ignored: array, school_year: string, slug: string, mode: string}
+ * @return array{items: int, memberships: int, donations: int, orders: int,
+ *               new: array, existing: array, ignored: array, school_year: string,
+ *               slug: string, mode: string}
  *
  * @throws RuntimeException
  */
@@ -917,7 +920,12 @@ function helloasso_get_campaigns(): array
  */
 function helloasso_get_campaign(int $id): ?array
 {
-    $stmt = app_pdo()->prepare('SELECT id, slug, school_year, url, last_imported_at, created_at FROM helloasso_campaigns WHERE id = :id LIMIT 1');
+    $stmt = app_pdo()->prepare(
+        'SELECT id, slug, school_year, url, last_imported_at, created_at
+         FROM helloasso_campaigns
+         WHERE id = :id
+         LIMIT 1'
+    );
     $stmt->execute([':id' => $id]);
     $row = $stmt->fetch();
 

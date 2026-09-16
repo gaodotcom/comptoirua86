@@ -64,7 +64,9 @@ return [
     'web_url' => $_env['WEB_URL'] ?? '',
     'mail_contact' => $_env['MAIL_CONTACT'] ?? '',
     'mail_noreply' => $_env['MAIL_NOREPLY'] ?? '',
-    'home_welcome_text' => $_env['HOME_WELCOME_TEXT'] ?? 'Au menu du Comptoir : les entraînements du coach, le trombinoscope des adhérents et quelques infos sur la vie d\'Ultramical86.',
+    'home_welcome_text' => $_env['HOME_WELCOME_TEXT'] ?? 'Au menu du Comptoir :
+        les entraînements du coach, le trombinoscope des adhérents et quelques
+        infos sur la vie d\'Ultramical86.',
     'smtp' => [
         'host' => $_env['SMTP_HOST'] ?? '',
         'port' => (int) ($_env['SMTP_PORT'] ?? 465),

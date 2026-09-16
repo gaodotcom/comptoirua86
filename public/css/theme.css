@@ -520,11 +520,16 @@ main, footer, nav {
 /* Alertes avec icône : alignement du texte à droite de l'icône */
 .alert > i.bi:first-child {
     margin-top: 0.125rem;
+    flex-shrink: 0;
 }
 .alert:has(> i.bi:first-child) {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
+}
+.alert > span {
+    flex: 1;
+    min-width: 0;
 }
 #scrollTop {
     display: none;

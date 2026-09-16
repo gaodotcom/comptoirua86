@@ -283,8 +283,22 @@ function send_password_reset_email(string $email, string $name, string $resetUrl
     <style>
         body { font-family: Arial, sans-serif; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .button { display: inline-block; background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .footer { font-size: 12px; color: #666; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>

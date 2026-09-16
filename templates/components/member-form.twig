@@ -89,7 +89,7 @@
     </div>
     <div class="col-12">
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="1" id="generic_account" name="generic_account" {{ (member.generic_account ?? 0) == 1 ? 'checked' : '' }}>
+            <input class="form-check-input" type="checkbox" value="1" id="generic_account" name="generic_account" {{ (member.generic_account ?? 0) == 1 ? 'checked' : '' }}{{ (member.generic_account ?? 0) != 1 ? ' disabled' : '' }}>
             <label class="form-check-label" for="generic_account">Compte générique Ultramical86</label>
         </div>
     </div>

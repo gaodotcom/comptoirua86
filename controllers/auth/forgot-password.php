@@ -30,7 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sent = request_password_reset($email);
 
             if ($sent) {
-                set_flash('success', 'Un email de réinitialisation a été envoyé à ' . e($email) . '. Veuillez vérifier votre boîte de réception.');
+                set_flash(
+                    'success',
+                    'Un email de réinitialisation a été envoyé à ' . e($email) . '. '
+                    . 'Veuillez vérifier votre boîte de réception.'
+                );
                 redirect_to('login');
             } else {
                 // Pour la sécurité, on ne dit pas si l'email existe ou non.

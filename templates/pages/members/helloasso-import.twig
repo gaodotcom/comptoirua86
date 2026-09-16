@@ -12,7 +12,7 @@
                     </div>
                 </div>
 
-                {# Sélecteur de campagne + mode #}
+                {# Sélecteur de campagne #}
                 <form method="get" action="{{ page_url('helloasso-import') }}" class="row g-2 mb-3 align-items-end">
                     <div class="col-md-6">
                         <label class="form-label" for="campaign_id">Campagne</label>
@@ -22,24 +22,16 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6 ps-3">
-                        <label class="form-label">Mode d'import</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="mode" id="modeComplet" value="complet" {{ mode != 'historique' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <label class="form-check-label" for="modeComplet">Complet</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="mode" id="modeHistorique" value="historique" {{ mode == 'historique' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <label class="form-check-label" for="modeHistorique">Historique</label>
-                        </div>
-                    </div>
                 </form>
 
-                {% if mode == 'historique' %}
-                    <div class="alert alert-secondary small py-2">
-                        <i class="bi bi-info-circle me-1"></i>Mode <strong>historique</strong> : seules les adhésions des membres déjà en base sont enregistrées. Aucun nouveau membre n'est créé.
-                    </div>
+                {# Explication du mode selon l'activité de la saison #}
+                <div class="alert alert-info mb-3">
+                {% if seasonActive %}
+                    <i class="bi bi-check-circle me-1"></i><span>La saison <strong>{{ selectedCampaign.school_year }}</strong> est une saison active. Le mode <strong>complet</strong> d'import est activé par défaut. Configuration modifiable en bas de page avant de "Confirmer l'import".</span>
+                {% else %}
+                    <i class="bi bi-clock-history me-1"></i><span>La saison <strong>{{ selectedCampaign.school_year }}</strong> est une saison inactive. Le mode <strong>adhésion</strong> d'import est activé par défaut. Configuration modifiable en bas de page avant de "Confirmer l'import".</span>
                 {% endif %}
+                </div>
 
                 {% if error is not null %}
                     <div class="alert alert-danger" role="alert">
@@ -48,37 +40,37 @@
                     </div>
                 {% elseif plan is not null %}
 
-                    <div class="alert alert-info" role="alert">
-                        <i class="bi bi-info-circle me-1"></i>Aperçu (dry-run) : aucune donnée n'est modifiée tant que vous ne cliquez pas sur « Confirmer l'import ».
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-info-circle me-1"></i>Aperçu des imports : aucune donnée n'est modifiée tant que vous ne cliquez pas sur « Confirmer l'import ».
                     </div>
 
                     <p class="text-muted">
                         Année scolaire <strong>{{ plan.school_year }}</strong>
-                        &middot; Mode <strong>{{ plan.mode }}</strong>
+                        &middot; Mode <strong>{{ plan.mode == 'adhesion' ? 'adhésion' : plan.mode }}</strong>
                     </p>
 
                     <div class="row g-2 mb-4">
                         <div class="col-6 col-md-3">
-                            <div class="border rounded p-2 text-center">
+                            <div class="border rounded p-2 text-center h-100">
                                 <div class="fs-4 fw-bold">{{ plan.items }}</div>
                                 <div class="text-muted small">Items reçus</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="border rounded p-2 text-center">
+                            <div class="border rounded p-2 text-center h-100">
                                 <div class="fs-4 fw-bold">{{ plan.memberships }}</div>
                                 <div class="text-muted small">Adhésions</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="border rounded p-2 text-center">
-                                <div class="fs-4 fw-bold text-success">{{ plan.new|length }}</div>
+                            <div class="border rounded p-2 text-center h-100">
+                                <div class="fs-4 fw-bold text-danger">{{ plan.new|length }}</div>
                                 <div class="text-muted small">Nouveaux adhérents</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="border rounded p-2 text-center">
-                                <div class="fs-4 fw-bold text-primary">{{ plan.existing|length }}</div>
+                            <div class="border rounded p-2 text-center h-100">
+                                <div class="fs-4 fw-bold text-danger">{{ plan.existing|length }}</div>
                                 <div class="text-muted small">Déjà en base</div>
                             </div>
                         </div>
@@ -111,7 +103,7 @@
                     {% endif %}
 
                     {% if plan.new is not empty %}
-                        <h2 class="h6 mb-2"><i class="bi bi-person-plus me-1"></i>{{ plan.new|length }} adhérent(s) à créer</h2>
+                        <h2 class="h5 mb-2 text-danger"><i class="bi bi-person-plus me-1"></i>{{ plan.new|length }} adhérent(s) à créer</h2>
                         <div class="table-responsive mb-4">
                             <table class="table table-sm table-striped align-middle">
                                 <thead>
@@ -159,32 +151,8 @@
                         </div>
                     {% endif %}
 
-                    {% if plan.already_imported is not empty %}
-                        <h2 class="h6 mb-2 text-muted"><i class="bi bi-check2 me-1"></i>{{ plan.already_imported|length }} adhésion(s) déjà enregistrée(s) — non réimportée(s)</h2>
-                        <div class="table-responsive mb-4">
-                            <table class="table table-sm table-striped align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Adhérent</th>
-                                        <th>Email HelloAsso</th>
-                                        <th class="text-end">Adhésion existante</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for e in plan.already_imported %}
-                                    <tr class="text-muted">
-                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
-                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
-                                        <td class="text-end small">{{ format_money(e.db_fee) }}{% if e.db_donation > 0 %} (+ {{ format_money(e.db_donation) }}){% endif %}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% endif %}
-
                     {% if plan.existing is not empty %}
-                        <h2 class="h6 mb-2"><i class="bi bi-check2-circle me-1"></i>{{ plan.existing|length }} adhérent(s) déjà en base</h2>
+                        <h2 class="h5 mb-2 text-danger"><i class="bi bi-check2-circle me-1"></i>{{ plan.existing|length }} adhérent(s) déjà en base (ajout de l'adhésion {{ plan.school_year }})</h2>
                         <p class="text-muted small">La fiche existante n'est pas modifiée. Seule l'adhésion {{ plan.school_year }} est ajoutée ou mise à jour si les montants diffèrent.</p>
                         <div class="table-responsive mb-4">
                             <table class="table table-sm table-striped align-middle">
@@ -242,41 +210,98 @@
                         </div>
                     {% endif %}
 
-                    {% if (mode == 'historique' and plan.existing is not empty) or (mode != 'historique' and (plan.new is not empty or plan.existing is not empty)) %}
-                    <form method="post" action="{{ page_url('helloasso-import') }}">
+
+                    {% if plan.already_imported is not empty %}
+                        <h2 class="h5 mb-2 text-primary"><i class="bi bi-check2 me-1"></i>{{ plan.already_imported|length }} adhésion(s) déjà enregistrée(s) — non réimportée(s)</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Adhérent</th>
+                                        <th>Email HelloAsso</th>
+                                        <th class="text-end">Adhésion existante</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in plan.already_imported %}
+                                    <tr class="text-muted">
+                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
+                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
+                                        <td class="text-end small">{{ format_money(e.db_fee) }}{% if e.db_donation > 0 %} (+ {{ format_money(e.db_donation) }}){% endif %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {# Sélecteur de mode (en bas, avant validation) — permet de forcer le mode par défaut #}
+                    <form method="get" action="{{ page_url('helloasso-import') }}" class="alert alert-info border gap-3 mb-3 py-2" id="helloassoModeForm">
+                        <input type="hidden" name="campaign_id" value="{{ selectedCampaignId }}">
+                        <div class="fw-semibold small text-nowrap"><i class="bi bi-sliders me-1"></i>Mode d'import :</div>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="mode" id="modeComplet" value="complet" {{ mode != 'adhesion' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="form-check-label" for="modeComplet">Complet — Crée les nouveaux adhérents et ajoute les adhésions (nouveaux + renouvellements)</label>
+                        </div>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="mode" id="modeAdhesion" value="adhesion" {{ mode == 'adhesion' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="form-check-label" for="modeAdhesion">Adhésion — Ajoute les adhésions des membres déjà en base uniquement (renouvellements ou historique des adhésions)</label>
+                        </div>
+                    </form>
+
+                    {% if (mode == 'adhesion' and plan.existing is not empty) or (mode != 'adhesion' and (plan.new is not empty or plan.existing is not empty)) %}
+                    <form method="post" action="{{ page_url('helloasso-import') }}" id="helloassoImportForm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="import">
                         <input type="hidden" name="campaign_id" value="{{ selectedCampaignId }}">
-                        <input type="hidden" name="mode" value="{{ mode }}">
+                        <input type="hidden" name="mode" value="{{ mode }}" id="importMode">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="confirm" id="confirmImport" value="1" required>
                             <label class="form-check-label" for="confirmImport">
-                                J'ai vérifié les données ci-dessus et confirme l'import pour {{ plan.school_year }} (mode {{ mode }}).
+                                J'ai vérifié les données ci-dessus et confirme l'import pour {{ plan.school_year }}.
                             </label>
                         </div>
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             <button class="btn btn-success" type="submit">
                                 <i class="bi bi-download me-1"></i>Confirmer l'import
                             </button>
-                            <span class="text-muted small">
-                                {% if mode == 'historique' %}
-                                    Enregistrera les adhésions {{ plan.school_year }} pour les {{ plan.existing|length }} membre(s) déjà en base. Aucun nouveau membre ne sera créé.
-                                {% else %}
-                                    Créera {{ plan.new|length }} adhérent(s) et enregistrera l'adhésion {{ plan.school_year }} pour {{ plan.memberships }} membre(s).
-                                {% endif %}
-                                La transaction est annulée en cas d'erreur.
-                            </span>
                         </div>
                     </form>
                     {% else %}
                         <div class="alert alert-secondary">
-                            {% if mode == 'historique' and plan.existing is empty %}
+                            {% if mode == 'adhesion' and plan.existing is empty %}
                                 Aucun membre en base ne correspond aux adhésions de cette campagne.
                             {% else %}
                                 Rien à importer : tous les adhérents sont déjà à jour.
                             {% endif %}
                         </div>
                     {% endif %}
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var modeForm = document.getElementById('helloassoModeForm');
+                        var importForm = document.getElementById('helloassoImportForm');
+                        var importModeInput = document.getElementById('importMode');
+
+                        if (!modeForm || !importModeInput) {
+                            return;
+                        }
+
+                        function syncImportMode() {
+                            var selectedMode = modeForm.querySelector('input[name="mode"]:checked');
+                            if (selectedMode && (selectedMode.value === 'complet' || selectedMode.value === 'adhesion')) {
+                                importModeInput.value = selectedMode.value;
+                            }
+                        }
+
+                        syncImportMode();
+                        modeForm.addEventListener('change', syncImportMode);
+
+                        if (importForm) {
+                            importForm.addEventListener('submit', syncImportMode);
+                        }
+                    });
+                    </script>
 
                 {% endif %}
             </div>

@@ -1,5 +1,5 @@
 parameters:
-    level: 5
+    level: 6
 
     paths:
         - app
@@ -20,5 +20,8 @@ parameters:
         -
             message: '#Variable \$user might not be defined#'
             path: controllers/*
+        # Les fonctions globales utilisent des tableaux sans typage des valeurs.
+        # À faire progressivement, mais on ignore pour maintenir le niveau 6.
+        - '#no value type specified in iterable type array#'
 
     reportUnmatchedIgnoredErrors: false

@@ -131,7 +131,9 @@ function get_member_memberships(int $memberId): array
 function get_detailed_members_with_history(): array
 {
     $stmt = app_pdo()->query(
-        'SELECT id, role, gender, first_name, last_name, username, address, postal_code, city, date_of_birth, phone, email, whatsapp_opt_in, photo_path, is_bureau, is_coach, bureau_role, generic_account
+        'SELECT id, role, gender, first_name, last_name, username, address, postal_code,
+                city, date_of_birth, phone, email, whatsapp_opt_in, photo_path, is_bureau,
+                is_coach, bureau_role, generic_account
          FROM members
          WHERE deleted_at IS NULL
          ORDER BY generic_account ASC, first_name ASC, last_name ASC'
@@ -151,7 +153,10 @@ function get_detailed_members_with_history(): array
 function get_members_by_school_year(string $schoolYear): array
 {
     $stmt = app_pdo()->prepare(
-        'SELECT DISTINCT m.id, m.role, m.gender, m.first_name, m.last_name, m.username, m.address, m.postal_code, m.city, m.date_of_birth, m.phone, m.email, m.whatsapp_opt_in, m.photo_path, m.is_bureau, m.is_coach, m.bureau_role, m.generic_account
+        'SELECT DISTINCT m.id, m.role, m.gender, m.first_name, m.last_name, m.username,
+                m.address, m.postal_code, m.city, m.date_of_birth, m.phone, m.email,
+                m.whatsapp_opt_in, m.photo_path, m.is_bureau, m.is_coach, m.bureau_role,
+                m.generic_account
          FROM members m
          INNER JOIN memberships ms ON ms.member_id = m.id
          WHERE m.deleted_at IS NULL
@@ -173,7 +178,9 @@ function get_members_by_school_year(string $schoolYear): array
 function get_inactive_members(): array
 {
     $stmt = app_pdo()->query(
-        'SELECT id, role, gender, first_name, last_name, username, address, postal_code, city, date_of_birth, phone, email, whatsapp_opt_in, photo_path, is_bureau, is_coach, bureau_role, generic_account
+        'SELECT id, role, gender, first_name, last_name, username, address, postal_code,
+                city, date_of_birth, phone, email, whatsapp_opt_in, photo_path, is_bureau,
+                is_coach, bureau_role, generic_account
          FROM members
          WHERE deleted_at IS NULL
            AND generic_account = 0
@@ -186,6 +193,26 @@ function get_inactive_members(): array
     );
 
     return attach_membership_history($stmt->fetchAll());
+}
+
+/**
+ * Récupère les comptes génériques (test) non supprimés.
+ *
+ * @return array Liste des comptes génériques
+ */
+function get_generic_members(): array
+{
+    $stmt = app_pdo()->query(
+        'SELECT id, role, gender, first_name, last_name, username, address, postal_code,
+                city, date_of_birth, phone, email, whatsapp_opt_in, photo_path, is_bureau,
+                is_coach, bureau_role, generic_account
+         FROM members
+         WHERE deleted_at IS NULL
+           AND generic_account = 1
+         ORDER BY first_name ASC, last_name ASC'
+    );
+
+    return $stmt->fetchAll();
 }
 
 /**
@@ -353,8 +380,13 @@ function admin_create_member(array $payload): array
     $passwordHash = null;
 
     $stmt = app_pdo()->prepare(
-        'INSERT INTO members (role, gender, first_name, last_name, username, email, password_hash, date_of_birth, phone, address, postal_code, city, whatsapp_opt_in, is_bureau, is_coach, generic_account, bureau_role)
-         VALUES (:role, :gender, :first_name, :last_name, :username, :email, :password_hash, :date_of_birth, :phone, :address, :postal_code, :city, :whatsapp_opt_in, :is_bureau, :is_coach, :generic_account, :bureau_role)'
+        'INSERT INTO members (role, gender, first_name, last_name, username, email,
+                              password_hash, date_of_birth, phone, address, postal_code,
+                              city, whatsapp_opt_in, is_bureau, is_coach, generic_account,
+                              bureau_role)
+         VALUES (:role, :gender, :first_name, :last_name, :username, :email,
+                 :password_hash, :date_of_birth, :phone, :address, :postal_code, :city,
+                 :whatsapp_opt_in, :is_bureau, :is_coach, :generic_account, :bureau_role)'
     );
 
     $stmt->execute(

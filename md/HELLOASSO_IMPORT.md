@@ -117,18 +117,18 @@ Crée les adhérents manquants et ajoute l'adhésion pour tous (nouveaux +
 existants). À utiliser pour les années récentes (ex: 2025-2026, 2026-2027)
 où on veut tous les adhérents en base.
 
-### Mode historique
+### Mode adhésion
 
 N'ajoute l'adhésion que pour les membres **déjà en base**. Les adhérents
 non trouvés sont affichés dans une section « ignorés » mais ne sont pas
 créés. À utiliser pour les années antérieures (ex: 2018-2024) pour
-renseigner l'historique sans créer d'anciens membres.
+renseigner l'historique des adhésions sans créer d'anciens membres.
 
 ### Flux
 
 1. Page **Importer depuis HelloAsso** (menu admin)
 2. Sélectionner la campagne dans le dropdown
-3. Choisir le mode (Complet ou Historique)
+3. Choisir le mode (Complet ou Adhésion)
 4. L'aperçu (dry-run) s'affiche : nouveaux adhérents, existants, ignorés
 5. Cocher la case de confirmation et cliquer sur « Confirmer l'import »
 6. L'import s'exécute en transaction (annulé en cas d'erreur)

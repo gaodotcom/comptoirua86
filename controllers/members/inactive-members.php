@@ -44,11 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $members = get_inactive_members();
+$genericMembers = get_generic_members();
 $yearCounts = get_active_year_counts();
 
 twig_render('pages/members/members-inactive.twig', [
     'title' => 'Anciens membres',
     'members' => $members,
+    'genericMembers' => $genericMembers,
     'yearCounts' => $yearCounts,
     'activeYears' => get_active_school_years(),
 ]);
