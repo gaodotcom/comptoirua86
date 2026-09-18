@@ -26,6 +26,7 @@ Application web simple en PHP pur + MariaDB, adaptee a un hebergement mutualise.
   - page d accueil avec les 3 dernieres semaines d entrainement
   - lien vers trombinoscope
   - 10 prochains anniversaires
+  - calendrier mensuel (evenements UA86, courses, anniversaires), avec detail du jour en modale
   - liens Facebook / Instagram
   - trombinoscope (photo, nom, prenom)
   - gestion de sa propre photo
@@ -47,6 +48,7 @@ Application web simple en PHP pur + MariaDB, adaptee a un hebergement mutualise.
 - `app/members.php`: CRUD adhérents, trombinoscope, anniversaires, adhésions
 - `app/trainings.php`: CRUD entraînements
 - `app/events.php`: CRUD événements
+- `app/calendar.php`: agrégation calendrier (événements, courses, anniversaires)
 - `app/news.php`: CRUD actualités
 - `app/uploads.php`: upload d'images, dossiers
 - `app/helpers.php`: URL, dates, avatar, formatage

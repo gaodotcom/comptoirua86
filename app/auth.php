@@ -304,6 +304,7 @@ function page_access_level(string $page): string
         'events' => 'connected',
         'races' => 'connected',
         'race-form' => 'connected',
+        'calendar' => 'connected',
         // Pages réservées au coach (ou admin).
         'training-form' => 'coach',
         'training-edit' => 'coach',

@@ -35,6 +35,9 @@ $yearCounts = get_active_year_counts();
 $activeCount = count_active_members();
 $renewalPending = get_renewal_pending();
 $renewalPendingIds = $renewalPending ? get_renewal_pending_ids() : [];
+// Nombre de nouveaux adhérents pour la campagne la plus récente (yearCounts[0],
+// trié décroissant) — ceux qui n'avaient pas d'adhésion l'année précédente.
+$newCount = $yearCounts !== [] ? count_new_members_for_school_year($yearCounts[0]['year']) : null;
 twig_render(
     'pages/members/trombinoscope.twig',
     [
@@ -42,6 +45,7 @@ twig_render(
     'members' => $members,
     'yearCounts' => $yearCounts,
     'activeCount' => $activeCount,
+    'newCount' => $newCount,
     'renewalPending' => $renewalPending,
     'renewalPendingIds' => $renewalPendingIds,
     ]

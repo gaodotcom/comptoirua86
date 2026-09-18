@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec bac8fe0381d0 php -r ' *)",
+      "Bash(docker exec comptoir-db-1 mariadb -uroot -proot -e ' *)",
+      "Bash(docker exec *)",
+      "Bash(php vendor/bin/phpcs app/auth.php app/render.php index.php app/calendar.php controllers/calendar/calendar.php --report=summary)",
+      "Bash(docker exec bac8fe0381d0 sh -lc ' *)",
+      "Bash(php vendor/bin/phpcs app/calendar.php controllers/calendar/calendar.php --report=summary)",
+      "Bash(php /tmp/twig_lint.php)",
+      "Bash(php -l app/calendar.php)",
+      "Bash(php vendor/bin/phpcs app/calendar.php --report=summary)",
+      "Bash(php vendor/bin/phpstan analyse app/calendar.php --level 6)",
+      "Bash(php -l controllers/calendar/calendar.php)",
+      "Bash(php vendor/bin/phpstan analyse app/calendar.php controllers/calendar/calendar.php --level 6)",
+      "Bash(php -r ' *)",
+      "Bash(php vendor/bin/phpcs app/races.php app/helpers.php app/twig.php app/calendar.php app/uploads.php --report=summary)",
+      "Bash(php vendor/bin/phpstan analyse app/races.php app/helpers.php app/twig.php app/calendar.php app/uploads.php --level 6)",
+      "Bash(php vendor/bin/phpstan analyse app controllers index.php --level 6)",
+      "Bash(php -l controllers/members/helloasso-import.php)",
+      "Bash(php vendor/bin/phpcs controllers/members/helloasso-import.php --report=summary)",
+      "Bash(php vendor/bin/phpstan analyse controllers/members/helloasso-import.php --level 6)",
+      "Bash(php -l app/helloasso.php)",
+      "Bash(php vendor/bin/phpcs app/helloasso.php --report=summary)",
+      "Bash(php vendor/bin/phpstan analyse app/helloasso.php --level 6)"
+    ]
+  }
+}

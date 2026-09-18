@@ -2,20 +2,23 @@
 {% set eventsCount = get_upcoming_events_count() %}
 {% set cp = current_page %}
 
-{% macro nav_active(pageId, currentPage) %}
-    {% set groups = {
+{# Le contrôle d'espaces (-%}) est indispensable ici : sans lui, la macro renvoie
+   "active" entouré d'espaces/retours à la ligne, ce qui casse toute comparaison
+   stricte du type `macros.nav_active(...) == 'active'`. #}
+{%- macro nav_active(pageId, currentPage) -%}
+    {%- set groups = {
         'trainings': ['trainings', 'training-form', 'training-edit'],
         'races': ['races', 'race-form']
-    } %}
-    {% set found = false %}
-    {% for navKey, pages in groups %}
-        {% if currentPage in pages and pageId in pages %}
-            {{ 'active' }}
-            {% set found = true %}
-        {% endif %}
-    {% endfor %}
-    {% if not found and pageId == currentPage %}active{% endif %}
-{% endmacro %}
+    } -%}
+    {%- set found = false -%}
+    {%- for navKey, pages in groups -%}
+        {%- if currentPage in pages and pageId in pages -%}
+            active
+            {%- set found = true -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if not found and pageId == currentPage -%}active{%- endif -%}
+{%- endmacro -%}
 
 {% import _self as macros %}
 
@@ -65,16 +68,21 @@
                 <li class="nav-item">
                     <a class="nav-link text-uppercase text-white fw-bold {{ macros.nav_active('trombinoscope', cp) }}" href="{{ page_url('trombinoscope') }}">Trombinoscope</a>
                 </li>
-                {% if newsCount > 3 %}
-                <li class="nav-item">
-                    <a class="nav-link text-uppercase text-white fw-bold {{ macros.nav_active('news', cp) }}" href="{{ page_url('news') }}">Actualités</a>
+                {% set moreActive = macros.nav_active('news', cp) == 'active' or macros.nav_active('events', cp) == 'active' or macros.nav_active('calendar', cp) == 'active' %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-uppercase text-white fw-bold {{ moreActive ? 'active' : '' }}" href="#" id="moreMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Actualités
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="moreMenu">
+                        {% if newsCount > 0 %}
+                        <li><a class="dropdown-item {{ macros.nav_active('news', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('news') }}"><i class="bi bi-megaphone me-2"></i>Informations</a></li>
+                        {% endif %}
+                        {% if eventsCount > 0 %}
+                        <li><a class="dropdown-item {{ macros.nav_active('events', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('events') }}"><i class="bi bi-calendar3 me-2"></i>Rendez-vous UA86</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item {{ macros.nav_active('calendar', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('calendar') }}"><i class="bi bi-calendar-week me-2"></i>Calendrier</a></li>
+                    </ul>
                 </li>
-                {% endif %}
-                {% if eventsCount > 0 %}
-                <li class="nav-item">
-                    <a class="nav-link text-uppercase text-white fw-bold {{ macros.nav_active('events', cp) }}" href="{{ page_url('events') }}">Événements</a>
-                </li>
-                {% endif %}
                 <li class="nav-item dropdown ms-xl-3">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle me-1"></i>{{ user.first_name }} {{ user.last_name[:1] }}. ({{ role_label(user.role) }})
@@ -129,12 +137,13 @@
             <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('trainings', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('trainings') }}"><i class="bi bi-calendar2-week me-2"></i>Entraînements</a></li>
             <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('races', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('races') }}"><i class="bi bi-rocket-takeoff me-2"></i>Courses</a></li>
             <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('trombinoscope', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('trombinoscope') }}"><i class="bi bi-person-rolodex me-2"></i>Trombinoscope</a></li>
-            {% if newsCount > 3 %}
-            <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('news', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('news') }}"><i class="bi bi-megaphone me-2"></i>Actualités</a></li>
+            {% if newsCount > 0 %}
+            <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('news', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('news') }}"><i class="bi bi-megaphone me-2"></i>Informations</a></li>
             {% endif %}
             {% if eventsCount > 0 %}
-            <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('events', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('events') }}"><i class="bi bi-calendar3 me-2"></i>Événements</a></li>
+            <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('events', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('events') }}"><i class="bi bi-calendar3 me-2"></i>Rendez-vous UA86</a></li>
             {% endif %}
+            <li class="list-group-item py-1"><a class="text-decoration-none {{ macros.nav_active('calendar', cp) == 'active' ? 'fw-bold' : '' }}" href="{{ page_url('calendar') }}"><i class="bi bi-calendar-week me-2"></i>Calendrier</a></li>
             {{ macro.user_menu_items(user) }}
         </ul>
     </div>

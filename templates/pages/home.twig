@@ -12,6 +12,42 @@
     </div>
 </section>
 
+{# Raccourcis vers le calendrier et le trombinoscope : ces deux pages n'ont pas
+   de "flux" à afficher (contrairement aux courses/actus/anniversaires ci-dessous),
+   d'où des tuiles de raccourci plutôt qu'une card avec un aperçu de contenu. #}
+<section class="row g-3 mb-4">
+    <div class="col-12 col-md-6">
+        <a href="{{ page_url('calendar') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:3rem;height:3rem;">
+                        <i class="bi bi-calendar3 fs-4"></i>
+                    </span>
+                    <div class="min-w-0">
+                        <div class="fw-semibold text-body">Calendrier</div>
+                        <div class="small text-secondary text-truncate">Rendez-vous, courses, anniversaires</div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-md-6">
+        <a href="{{ page_url('trombinoscope') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:3rem;height:3rem;">
+                        <i class="bi bi-person-rolodex fs-4"></i>
+                    </span>
+                    <div class="min-w-0">
+                        <div class="fw-semibold text-body">Trombinoscope</div>
+                        <div class="small text-secondary text-truncate">Tous les adhérents</div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</section>
+
 {# En desktop (lg+) : training à gauche (col-7), tout le reste empilé à droite (col-5) #}
 {# En tablette/mobile : training en col-12, puis 4 cards en col-md-6 #}
 <section class="row g-4">

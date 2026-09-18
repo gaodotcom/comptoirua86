@@ -21,6 +21,7 @@ function ensure_upload_directories(): void
         $config['uploads_fs_root'],
         $config['uploads_fs_root'] . '/members',
         $config['uploads_fs_root'] . '/trainings',
+        $config['uploads_fs_root'] . '/races',
     ];
 
     foreach ($folders as $folder) {

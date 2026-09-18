@@ -13,7 +13,13 @@
                     <div class="mb-3"><label class="form-label" for="title">Nom de la course</label><input class="form-control" type="text" id="title" name="title" value="{{ raceTitle }}" required></div>
                     <div class="row g-3">
                         <div class="col-md-6"><label class="form-label" for="start_date">Date de début</label><input class="form-control" type="date" id="start_date" name="start_date" value="{{ startDate }}" required></div>
-                        <div class="col-md-6"><label class="form-label" for="end_date">Date de fin (facultatif)</label><input class="form-control" type="date" id="end_date" name="end_date" value="{{ endDate }}"></div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="end_date">Date de fin</label>
+                            <div class="input-group">
+                                <input class="form-control" type="date" id="end_date" name="end_date" value="{{ endDate }}">
+                                <button class="btn btn-outline-secondary" type="button" id="end_date_clear_btn" title="Aucune date de fin"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3 mt-3"><label class="form-label" for="location">Lieu (facultatif)</label><input class="form-control" type="text" id="location" name="location" value="{{ location }}"></div>
                     <div class="mb-3"><label class="form-label" for="distances">Distances</label><input class="form-control" type="text" id="distances" name="distances" value="{{ distances }}" placeholder="Ex : 10km, semi, marathon" required></div>
@@ -36,4 +42,5 @@
         </div>
     </div>
 </div>
+<script src="{{ asset_url('public/js/date-fields.js') }}"></script>
 {% endblock %}

@@ -43,6 +43,7 @@ function page_subdir(string $pageName): string
         'news-form' => 'news',
         'races' => 'races',
         'race-form' => 'races',
+        'calendar' => 'calendar',
     ];
 
     return $mapping[$pageName] ?? '';

@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS races (
     location VARCHAR(255) NULL,
     distances VARCHAR(255) NOT NULL,
     website_url VARCHAR(500) NULL,
+    favicon_path VARCHAR(255) NULL,
     registration_info TEXT NULL,
     created_by INT UNSIGNED NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -116,6 +117,11 @@ CREATE TABLE IF NOT EXISTS races (
         REFERENCES members(id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ajout a posteriori pour les bases déjà déployées avant l'introduction du
+-- favicon stocké localement (schema.sql n'étant importé qu'une seule fois à
+-- l'installation, le CREATE TABLE ci-dessus ne suffit pas à le rajouter).
+ALTER TABLE races ADD COLUMN IF NOT EXISTS favicon_path VARCHAR(255) NULL AFTER website_url;
 
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

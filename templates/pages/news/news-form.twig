@@ -6,7 +6,7 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
                     <i class="bi bi-newspaper fs-4 lh-1 flex-shrink-0"></i>
-                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">{{ isEditing ? 'Modifier l\'actualité' : 'Ajouter une actualité' }}</h1>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">{{ isEditing ? 'Modifier l\'information' : 'Ajouter une information' }}</h1>
                 </div>
                 <form method="post" action="{{ isEditing ? page_url('news-form', {'id': newsId}) : page_url('news-form') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

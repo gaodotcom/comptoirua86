@@ -11,10 +11,8 @@
         </div>
     {% endfor %}
 </div>
-{% if totalPublishedNews > 3 %}
-    <div class="text-center mt-3">
-        <a href="{{ page_url('news') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-newspaper me-2"></i>Toutes les infos
-        </a>
-    </div>
-{% endif %}
+<div class="text-center mt-2">
+    <a href="{{ page_url('news') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-megaphone me-2"></i>Les informations
+    </a>
+</div>

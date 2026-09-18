@@ -126,6 +126,38 @@ function count_members_for_school_year(string $schoolYear): int
 }
 
 /**
+ * Récupère le nombre de « nouveaux » adhérents pour une année scolaire donnée :
+ * ceux qui ont une adhésion cette année-là mais n'en avaient aucune l'année
+ * scolaire précédente (donc ni renouvellement, ni ancien qui reprend plus tard).
+ *
+ * @param string $schoolYear Année scolaire (ex: '2026-2027')
+ *
+ * @return int
+ */
+function count_new_members_for_school_year(string $schoolYear): int
+{
+    [$start, $end] = explode('-', $schoolYear);
+    $previousYear = ((int) $start - 1) . '-' . ((int) $end - 1);
+
+    $sql = '
+        SELECT COUNT(DISTINCT m.id)
+        FROM members m
+        INNER JOIN memberships ms ON ms.member_id = m.id
+        WHERE m.deleted_at IS NULL
+          AND m.generic_account = 0
+          AND ms.school_year = :sy
+          AND NOT EXISTS (
+              SELECT 1 FROM memberships prev
+              WHERE prev.member_id = m.id AND prev.school_year = :prev_sy
+          )
+    ';
+    $stmt = app_pdo()->prepare($sql);
+    $stmt->execute([':sy' => $schoolYear, ':prev_sy' => $previousYear]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+/**
  * Détermine si un membre est actif (pour le contrôle d'accès au site).
  *
  * Règle :

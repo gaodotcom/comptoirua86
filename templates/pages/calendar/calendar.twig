@@ -1,0 +1,127 @@
+{% extends 'layout.twig' %}
+
+{% macro item_icon(item) %}
+    {%- if item.type == 'event' -%}
+        <img src="{{ asset_url('/public/favicon-32x32.png') }}" width="14" height="14" class="rounded" alt="">
+    {%- elseif item.type == 'race' -%}
+        {%- if item.favicon -%}
+            <img src="{{ item.favicon }}" width="14" height="14" class="rounded" alt="">
+        {%- else -%}
+            <i class="bi bi-flag"></i>
+        {%- endif -%}
+    {%- else -%}
+        <i class="bi bi-cake2"></i>
+    {%- endif -%}
+{% endmacro %}
+{% import _self as macros %}
+
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+    <i class="bi bi-calendar3 fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Le calendrier des adhérents</h1>
+    {% if cal.current != thisMonth %}
+    <div class="flex-shrink-0">
+        <a href="{{ page_url('calendar') }}" class="btn btn-outline-primary btn-sm" title="Revenir à aujourd'hui"><i class="bi bi-calendar-check"></i><span class="d-none d-md-inline ms-1">Aujourd'hui</span></a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header page-card-header bg-white calendar-nav">
+        <div class="calendar-nav-prev">
+            {% if cal.prev %}<a href="{{ page_url('calendar', {'mois': cal.prev}) }}" class="btn btn-outline-secondary btn-sm py-0 px-1" title="Mois précédent"><i class="bi bi-chevron-left"></i></a>{% endif %}
+        </div>
+        <span class="fs-5 text-capitalize">{{ cal.label }}</span>
+        <div class="calendar-nav-next">
+            {% if cal.next %}<a href="{{ page_url('calendar', {'mois': cal.next}) }}" class="btn btn-outline-secondary btn-sm py-0 px-1" title="Mois suivant"><i class="bi bi-chevron-right"></i></a>{% endif %}
+        </div>
+    </div>
+    <div class="card-body p-2 p-md-3">
+        <table class="calendar-grid">
+            <thead>
+                <tr>
+                    <th>L</th><th>M</th><th>M</th><th>J</th><th>V</th><th>S</th><th>D</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in cal.weeks %}
+                <tr>
+                    {% for day in week %}
+                    <td
+                        class="calendar-day {{ not day.inMonth ? 'out-month' : '' }} {{ day.isToday ? 'is-today' : '' }} {{ day.isWeekend ? 'is-weekend' : '' }} {{ day.items is not empty ? 'has-items' : '' }}"
+                        {% if day.items is not empty %}data-bs-toggle="modal" data-bs-target="#jour-{{ day.date }}" role="button" tabindex="0" aria-label="{{ day.label }} : {{ day.items|length }} élément{{ day.items|length > 1 ? 's' : '' }}"{% endif %}
+                    >
+                        <div class="calendar-day-number">{{ day.day }}</div>
+                        {% if day.items is not empty %}
+                            <div class="d-none d-md-block">
+                                {% for item in day.items|slice(0, 3) %}
+                                    <span class="calendar-day-chip chip-{{ item.type }}">{{ macros.item_icon(item) }} {{ item.title }}</span>
+                                {% endfor %}
+                                {% if day.items|length > 3 %}<span class="small text-secondary">+{{ day.items|length - 3 }}</span>{% endif %}
+                            </div>
+                            <div class="d-md-none text-center">
+                                {% for item in day.items|slice(0, 4) %}<span class="calendar-day-icon chip-{{ item.type }}">{{ macros.item_icon(item) }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="calendar-legend d-flex flex-wrap gap-2 mt-3">
+    <span class="badge chip-event fw-normal"><i class="bi bi-calendar-event me-1"></i>Rendez-vous UA86</span>
+    <span class="badge chip-race fw-normal"><i class="bi bi-flag me-1"></i>Courses</span>
+    <span class="badge chip-birthday fw-normal"><i class="bi bi-cake2 me-1"></i>Anniversaires</span>
+</div>
+
+{% endblock %}
+
+{# Une modale par jour comportant au moins un élément : liste simple, adaptée au mobile.
+   Rendues dans le bloc 'modals' (hors <main>) pour ne pas être piégées sous la navbar. #}
+{% block modals %}
+{% for week in cal.weeks %}
+    {% for day in week %}
+        {% if day.items is not empty %}
+        <div class="modal fade" id="jour-{{ day.date }}" tabindex="-1" aria-hidden="true" aria-labelledby="jour-{{ day.date }}-label">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5 text-capitalize mb-0" id="jour-{{ day.date }}-label">{{ day.label }}</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="list-group list-group-flush">
+                            {% for item in day.items %}
+                            <li class="list-group-item d-flex align-items-start gap-2">
+                                <span class="calendar-day-dot chip-{{ item.type }} mt-2 flex-shrink-0"></span>
+                                <div class="flex-grow-1 min-w-0">
+                                    {% if item.type == 'birthday' %}
+                                        <div><i class="bi bi-cake2 me-1"></i>Anniversaire de <strong>{{ item.full_name }}</strong> 🎂</div>
+                                    {% else %}
+                                        <div>
+                                            {{ macros.item_icon(item) }}
+                                            {% if item.url %}<a href="{{ item.url }}" class="text-decoration-none fw-semibold">{{ item.title }}</a>{% else %}<strong>{{ item.title }}</strong>{% endif %}
+                                            {% if item.draft %}<span class="badge text-bg-secondary fw-normal ms-1">Brouillon</span>{% endif %}
+                                        </div>
+                                        <div class="small text-secondary">
+                                            {{ item.dates }}
+                                            {% if item.details %} · {{ item.details }}{% endif %}
+                                            {% if item.type == 'race' and item.registered > 0 %} · {{ item.registered }} inscrit{{ item.registered > 1 ? 's' : '' }}{% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+{% endblock %}

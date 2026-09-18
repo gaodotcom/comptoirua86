@@ -62,6 +62,7 @@ function twig_instance(): \Twig\Environment
         'csrf_token',
         // Avatars
         'render_avatar',
+        'race_favicon_url',
         // News count for navbar
         'get_published_news',
         // Events count for navbar

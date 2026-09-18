@@ -2,11 +2,11 @@
 {% block content %}
 <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-4">
     <i class="bi bi-megaphone fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
-    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Les actualités</h1>
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Les informations</h1>
     {% if is_admin() %}<div class="flex-shrink-0"><a class="btn btn-outline-success btn-sm" href="{{ page_url('news-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter</span></a></div>{% endif %}
 </div>
 {% if allNews is empty %}
-    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucune actualité pour le moment.</div>
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucune information pour le moment.</div>
 {% else %}
     <div class="row g-4">
     {% for newsItem in allNews %}

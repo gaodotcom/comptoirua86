@@ -6,7 +6,16 @@
     {% if is_admin() %}<div class="flex-shrink-0"><a href="{{ page_url('member-add') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-person-plus"></i><span class="d-none d-md-inline ms-1">Ajouter un adhérent</span></a></div>{% endif %}
 </div>
 <p class="text-muted mb-2 d-flex flex-md-row flex-column gap-1 mb-4">
-    {% for yc in yearCounts %}<span>{{ yc.count }} adhérent{{ yc.count > 1 ? 's' }} en {{ yc.year }}</span>{% if not loop.last %}<span class="d-none d-md-inline">, </span>{% endif %}{% endfor %}{% if yearCounts|length > 1 %}<span><span class="d-none d-md-inline">— </span>{{ activeCount }} au total</span>{% endif %}
+    {%- for yc in yearCounts -%}
+        <span>
+            {{- yc.count }} adhérent{{ yc.count > 1 ? 's' }} en {{ yc.year -}}
+            {%- if loop.first and newCount is not null %} (dont {{ newCount }} nouveau{{ newCount > 1 ? 'x' }}){% endif -%}
+        </span>
+        {%- if not loop.last -%}<span class="d-none d-md-inline">, </span>{%- endif -%}
+    {%- endfor -%}
+    {%- if yearCounts|length > 1 -%}
+        <span><span class="d-none d-md-inline">— </span>{{ activeCount }} au total</span>
+    {%- endif -%}
 </p>
 {% if renewalPending and renewalPending.count > 0 and can_view_detailed_members() %}
 <div class="d-inline-block mb-3">

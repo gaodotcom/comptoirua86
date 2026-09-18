@@ -132,15 +132,30 @@ function base_url(string $path = ''): string
 }
 
 /**
- * Construit l'URL web d'un asset (image, CSS...).
+ * Construit l'URL web d'un asset (image, CSS, JS...).
  *
- * @param string $path Chemin relatif de l'asset
+ * Ajoute automatiquement un paramètre de version basé sur la date de
+ * modification du fichier (ex: ?v=1758193200). Ainsi, à chaque déploiement
+ * d'un fichier CSS/JS modifié, l'URL change d'elle-même et le navigateur va
+ * forcément rechercher la nouvelle version — plus besoin de vider son cache
+ * manuellement (Ctrl+Maj+R) après une mise à jour, pour personne.
  *
- * @return string URL web absolue de l'asset
+ * @param string $path Chemin relatif de l'asset (ex: '/public/css/theme.css')
+ *
+ * @return string URL web absolue de l'asset, versionnée si le fichier existe
  */
 function asset_url(string $path): string
 {
-    return base_url('/' . ltrim($path, '/'));
+    $relative = ltrim($path, '/');
+    $url = base_url('/' . $relative);
+
+    $fsPath = __DIR__ . '/../' . $relative;
+
+    if (is_file($fsPath)) {
+        $url .= (str_contains($url, '?') ? '&' : '?') . 'v=' . filemtime($fsPath);
+    }
+
+    return $url;
 }
 
 /**

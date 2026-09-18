@@ -19,33 +19,34 @@ declare(strict_types=1);
  */
 function route_map(): array
 {
-    return [
-        'home' => 'accueil',
-        'login' => 'connexion',
-        'logout' => 'deconnexion',
-        'forgot-password' => 'mot-de-passe-oublie',
-        'reset-password' => 'reinitialiser-mot-de-passe',
-        'profile' => 'mon-profil',
-        'change-password' => 'modifier-mon-mot-de-passe',
-        'trombinoscope' => 'trombinoscope',
-        'trainings' => 'entrainements',
-        'training-form' => 'publier-un-entrainement',
-        'training-edit' => 'modifier-un-entrainement',
-        'member-edit' => 'fiche-adherent',
-        'member-add' => 'ajouter-un-adherent',
-        'helloasso-import' => 'importer-helloasso',
-        'helloasso-campaigns' => 'campagnes-helloasso',
-        'active-years' => 'saisons-actives',
-        'inactive-members' => 'adherents-desactives',
-        'season-members' => 'saison',
-        'admin-guide' => 'aide',
-        'events' => 'evenements',
-        'event-form' => 'evenement',
-        'news' => 'actualites',
-        'news-form' => 'actualite',
-        'races' => 'courses',
-        'race-form' => 'partager-une-course',
-    ];
+	return [
+		'home' => 'accueil',
+		'login' => 'connexion',
+		'logout' => 'deconnexion',
+		'forgot-password' => 'mot-de-passe-oublie',
+		'reset-password' => 'reinitialiser-mot-de-passe',
+		'profile' => 'mon-profil',
+		'change-password' => 'modifier-mon-mot-de-passe',
+		'trombinoscope' => 'trombinoscope',
+		'trainings' => 'entrainements',
+		'training-form' => 'publier-un-entrainement',
+		'training-edit' => 'modifier-un-entrainement',
+		'member-edit' => 'fiche-adherent',
+		'member-add' => 'ajouter-un-adherent',
+		'helloasso-import' => 'importer-helloasso',
+		'helloasso-campaigns' => 'campagnes-helloasso',
+		'active-years' => 'saisons-actives',
+		'inactive-members' => 'adherents-desactives',
+		'season-members' => 'saison',
+		'admin-guide' => 'aide',
+		'events' => 'agenda-ua86',
+		'event-form' => 'evenement',
+		'news' => 'actualites',
+		'news-form' => 'actualite',
+		'races' => 'courses',
+		'race-form' => 'partager-une-course',
+		'calendar' => 'calendrier',
+	];
 }
 
 /**
@@ -57,9 +58,9 @@ function route_map(): array
  */
 function route_to_slug(string $route): string
 {
-    $map = route_map();
+	$map = route_map();
 
-    return $map[$route] ?? $route;
+	return $map[$route] ?? $route;
 }
 
 /**
@@ -71,8 +72,8 @@ function route_to_slug(string $route): string
  */
 function slug_to_route(string $slug): ?string
 {
-    $map = route_map();
-    $reverse = array_flip($map);
+	$map = route_map();
+	$reverse = array_flip($map);
 
-    return $reverse[$slug] ?? null;
+	return $reverse[$slug] ?? null;
 }

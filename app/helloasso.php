@@ -687,6 +687,11 @@ function helloasso_load_member_indexes(string $schoolYear): array
  * présents ne sont pas recréés : on ajoute simplement leur adhésion (sans
  * écraser leur fiche existante).
  *
+ * Si plusieurs items HelloAsso de la campagne se rapprochent du même adhérent
+ * (double inscription, correction...), ils sont fusionnés en une seule entrée
+ * de `existing` : le tarif le plus élevé est conservé comme référence, les
+ * dons sont cumulés, plutôt que d'afficher plusieurs lignes contradictoires.
+ *
  * @param string $slug        Slug de la campagne HelloAsso
  * @param string $mode        Mode d'import : 'complet' (crée les membres manquants)
  *                            ou 'adhesion' (ignore les non-trouvés)
@@ -719,6 +724,13 @@ function helloasso_build_import_plan(string $slug, string $mode = 'complet'): ar
     $donationCount = 0;
     $usedEmails = []; // Emails déjà attribués dans ce lot (clé normalisée).
 
+    // Adhérents déjà rapprochés dans cette même campagne, en attente de finalisation
+    // (member_id => ['entry' => ..., 'memberData' => ...]). Un même adhérent peut
+    // correspondre à plusieurs items HelloAsso (double inscription, correction...) :
+    // on les fusionne au lieu d'afficher plusieurs lignes contradictoires pour la
+    // même personne (voir fusion plus bas).
+    $matchedByMemberId = [];
+
     foreach ($items as $it) {
         $userFn = trim((string) ($it['user']['firstName'] ?? ''));
         $userLn = trim((string) ($it['user']['lastName'] ?? ''));
@@ -746,19 +758,30 @@ function helloasso_build_import_plan(string $slug, string $mode = 'complet'): ar
 
         if ($matchedId !== null) {
             $entry['member_id'] = (int) $matchedId;
-            $needsImport = helloasso_finalize_existing_entry($entry, (int) $matchedId, $dbById, $dbMemberships, $memberData);
 
-            if (!$needsImport) {
-                $alreadyImported[] = $entry;
-                continue;
+            if (isset($matchedByMemberId[$matchedId])) {
+                // Fusion : on garde le tarif le plus élevé comme entrée principale
+                // (probablement le vrai paiement, l'autre item pouvant être une
+                // correction ou un doublon à 0€), et on cumule les dons.
+                $primary = $matchedByMemberId[$matchedId]['entry'];
+                $primaryData = $matchedByMemberId[$matchedId]['memberData'];
+
+                if ((int) $entry['fee'] >= (int) $primary['fee']) {
+                    $entry['donation'] = (int) $entry['donation'] + (int) $primary['donation'];
+                    $matchedByMemberId[$matchedId] = ['entry' => $entry, 'memberData' => $memberData];
+                } else {
+                    $primary['donation'] = (int) $primary['donation'] + (int) $entry['donation'];
+                    $matchedByMemberId[$matchedId] = ['entry' => $primary, 'memberData' => $primaryData];
+                }
+            } else {
+                $matchedByMemberId[$matchedId] = ['entry' => $entry, 'memberData' => $memberData];
             }
 
-            $existing[] = $entry;
             continue;
         }
 
-        // Nouvel adhérent : en mode historique, on ignore ; en mode complet, on crée.
-        if ($mode === 'historique') {
+        // Nouvel adhérent : en mode adhesion, on ignore ; en mode complet, on crée.
+        if ($mode === 'adhesion') {
             $ignored[] = $entry;
             continue;
         }
@@ -767,6 +790,20 @@ function helloasso_build_import_plan(string $slug, string $mode = 'complet'): ar
         helloasso_assign_unique_email($entry, $memberData, $byEmail, $usedEmails);
 
         $new[] = $entry;
+    }
+
+    // Finalisation des adhérents rapprochés (diffs, statut) une fois les
+    // éventuels doublons de la même campagne fusionnés en une seule entrée.
+    foreach ($matchedByMemberId as $matchedId => $match) {
+        $entry = $match['entry'];
+        $needsImport = helloasso_finalize_existing_entry($entry, (int) $matchedId, $dbById, $dbMemberships, $match['memberData']);
+
+        if (!$needsImport) {
+            $alreadyImported[] = $entry;
+            continue;
+        }
+
+        $existing[] = $entry;
     }
 
     return [

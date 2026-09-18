@@ -2,92 +2,20 @@
 {% block content %}
 <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-4">
     <i class="bi bi-calendar3 fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
-    <h1 class="h2 mb-0 flex-grow-1 min-w-0">Les événements</h1>
-    {% if is_admin() %}<div class="flex-shrink-0"><a class="btn btn-outline-success btn-sm" href="{{ page_url('event-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter un événement</span></a></div>{% endif %}
+    <h1 class="h2 mb-0 flex-grow-1 min-w-0">L'agenda UA86</h1>
+    <div class="flex-shrink-0 d-flex gap-1">
+        <a class="btn btn-outline-primary btn-sm" href="{{ page_url('calendar') }}" title="Voir le calendrier"><i class="bi bi-calendar3"></i><span class="d-none d-md-inline ms-1">Calendrier</span></a>
+        {% if is_admin() %}<a class="btn btn-outline-success btn-sm" href="{{ page_url('event-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter un événement</span></a>{% endif %}
+    </div>
 </div>
 {% if upcomingEvents is empty and pastEvents is empty %}
     <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucun événement pour le moment.</div>
 {% else %}
     {% if upcomingEvents is not empty %}
     <div class="row g-4 mb-4">
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header page-card-header bg-white">
-                    <span class="fs-5"><i class="bi bi-calendar3 me-2"></i>Agenda</span>
-                </div>
-                <div class="card-body">
-                    {% set now = calToday %}
-                    {% set year = calYear %}
-                    {% set month = calMonth %}
-                    {% set monthName = calMonthName %}
-                    {% set firstDay = year ~ '-' ~ month ~ '-01' %}
-                    {% set daysInMonth = firstDay|date('t') %}
-                    {% set startWeekday = firstDay|date('N') %}
-                    {% set pastDays = {} %}
-                    {% for ev in pastEvents %}
-                        {% set startD = ev.start_date|slice(0, 10) %}
-                        {% set endD = ev.end_date is not empty ? ev.end_date|slice(0, 10) : startD %}
-                        {% set diff = date(endD).diff(date(startD)) %}
-                        {% for i in 0..diff.days %}
-                            {% set currentDay = date(startD)|date_modify('+' ~ i ~ ' days')|date('Y-m-d') %}
-                            {% if currentDay|slice(0, 7) == year ~ '-' ~ month %}
-                                {% set pastDays = pastDays|merge({('d' ~ currentDay|slice(8, 2)): true}) %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endfor %}
-                    {% set upcomingDays = {} %}
-                    {% for ev in upcomingEvents %}
-                        {% if ev.published or is_admin() %}
-                        {% set startD = ev.start_date|slice(0, 10) %}
-                        {% set endD = ev.end_date is not empty ? ev.end_date|slice(0, 10) : startD %}
-                        {% set diff = date(endD).diff(date(startD)) %}
-                        {% for i in 0..diff.days %}
-                            {% set currentDay = date(startD)|date_modify('+' ~ i ~ ' days')|date('Y-m-d') %}
-                            {% if currentDay|slice(0, 7) == year ~ '-' ~ month %}
-                                {% set upcomingDays = upcomingDays|merge({('d' ~ currentDay|slice(8, 2)): true}) %}
-                            {% endif %}
-                        {% endfor %}
-                        {% endif %}
-                    {% endfor %}
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        {% if prevMonth %}<a href="{{ page_url('events', {'cal': prevMonth}) }}" class="btn btn-outline-secondary btn-sm py-0 px-1"><i class="bi bi-chevron-left"></i></a>{% else %}<span>&nbsp;</span>{% endif %}
-                        <strong>{{ monthName|capitalize }}</strong>
-                        {% if nextMonth %}<a href="{{ page_url('events', {'cal': nextMonth}) }}" class="btn btn-outline-secondary btn-sm py-0 px-1"><i class="bi bi-chevron-right"></i></a>{% else %}<span>&nbsp;</span>{% endif %}
-                    </div>
-                    <table class="table table-sm mb-0 text-center" style="table-layout:fixed;">
-                        <thead>
-                            <tr class="small text-secondary">
-                                <th>L</th><th>M</th><th>M</th><th>J</th><th>V</th><th>S</th><th>D</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% set day = 1 %}
-                            {% set weekday = (startWeekday - 1) %}
-                            {% set totalCells = ((daysInMonth + weekday) / 7)|round(0, 'ceil') * 7 %}
-                            {% for i in 1..totalCells %}
-                                {% if (i - 1) % 7 == 0 %}<tr>{% endif %}
-                                {% if i > weekday and day <= daysInMonth %}
-                                    {% set dayStr = "%02d"|format(day) %}
-                                    {% set isPast = pastDays['d' ~ dayStr] ?? false %}
-                                    {% set isUpcoming = upcomingDays['d' ~ dayStr] ?? false %}
-                                    {% set isToday = (year ~ '-' ~ month ~ '-' ~ dayStr) == now %}
-                                    {% set todayStyle = isToday ? 'background-color: #e9ecef;' : '' %}
-                                    {% set todayClass = isToday ? 'fw-bold' : '' %}
-                                    <td {% if isUpcoming %}class="text-bg-primary {{ todayClass }}"{% elseif isPast %}class="{{ todayClass }}" style="background-color: rgba(10, 146, 180, 0.1);{% if isToday %} font-weight: bold;{% endif %}"{% else %}class="{{ todayClass }}" style="{{ todayStyle }}"{% endif %}>{{ day }}</td>
-                                    {% set day = day + 1 %}
-                                {% else %}
-                                    <td></td>
-                                {% endif %}
-                                {% if i % 7 == 0 %}</tr>{% endif %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
         {% for event in upcomingEvents %}
             {% if event.published or is_admin() %}
-            <div class="col-12 col-md-6 col-lg-4">
+            <div class="col-12 col-md-6 col-lg-4 anchor-target" id="evenement-{{ event.id }}">
                 <div class="card shadow-sm h-100 {{ not event.published ? 'bg-body-secondary' : '' }}">
                     <div class="card-header page-card-header bg-white d-flex align-items-baseline align-items-md-center gap-2">
                         <i class="bi bi-calendar-event fs-5 me-1 flex-shrink-0"></i>
@@ -121,7 +49,7 @@
     <div class="row g-3">
         {% for event in pastEvents %}
             {% if event.published or is_admin() %}
-            <div class="col-12">
+            <div class="col-12 anchor-target" id="evenement-{{ event.id }}">
                 <div class="card shadow-sm {{ not event.published ? 'bg-body-secondary' : '' }}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">

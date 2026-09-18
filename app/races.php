@@ -57,6 +57,130 @@ function validate_race_payload(array $payload): array
 }
 
 /**
+ * Télécharge et enregistre localement le favicon du site d'une course, via le
+ * même service (DuckDuckGo) utilisé auparavant côté client, mais une seule
+ * fois côté serveur au moment de l'enregistrement plutôt qu'à chaque affichage
+ * de la page (évite la dépendance à un service tiers à chaque visite).
+ *
+ * Échoue toujours silencieusement (retourne null) : un favicon indisponible
+ * n'empêche jamais l'enregistrement d'une course.
+ *
+ * @param string $websiteUrl URL du site de la course
+ *
+ * @return string|null Chemin web relatif du fichier enregistré, ou null
+ */
+function fetch_race_favicon(string $websiteUrl): ?string
+{
+    $host = parse_url($websiteUrl, PHP_URL_HOST);
+
+    if (!is_string($host) || $host === '') {
+        return null;
+    }
+
+    $ch = curl_init('https://icons.duckduckgo.com/ip3/' . rawurlencode($host) . '.ico');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+
+    $body = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($errno !== 0 || $code >= 400 || !is_string($body) || $body === '') {
+        return null;
+    }
+
+    // Garde-fou de taille : une icône ne devrait jamais peser autant.
+    if (strlen($body) > 200_000) {
+        return null;
+    }
+
+    // On vérifie le contenu réel du fichier plutôt que de faire confiance au service distant.
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = (string) $finfo->buffer($body);
+
+    $allowedMimes = [
+        'image/x-icon' => 'ico',
+        'image/vnd.microsoft.icon' => 'ico',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/jpeg' => 'jpg',
+        'image/webp' => 'webp',
+    ];
+
+    if (!isset($allowedMimes[$mime])) {
+        return null;
+    }
+
+    $filename = 'race_' . bin2hex(random_bytes(4)) . '.' . $allowedMimes[$mime];
+    $fsRoot = rtrim(app_config()['uploads_fs_root'], '/');
+    $targetDirectory = $fsRoot . '/races';
+
+    if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
+        return null;
+    }
+
+    if (file_put_contents($targetDirectory . '/' . $filename, $body) === false) {
+        return null;
+    }
+
+    $webRoot = trim(app_config()['uploads_web_root'], '/');
+
+    return $webRoot . '/races/' . $filename;
+}
+
+/**
+ * Met à jour le favicon stocké d'une course si nécessaire : télécharge le
+ * nouveau si l'URL du site a changé (ou qu'aucun favicon n'était encore
+ * enregistré), supprime l'ancien fichier une fois le nouveau en place, et
+ * nettoie si le site a été retiré. N'écrit en base que s'il y a un changement.
+ *
+ * @param int         $raceId              Identifiant de la course
+ * @param string|null $websiteUrl          Nouvelle URL du site (null/vide si aucune)
+ * @param string|null $previousWebsiteUrl  URL du site avant l'enregistrement
+ * @param string|null $previousFaviconPath Chemin web du favicon déjà enregistré
+ *
+ * @return void
+ */
+function refresh_race_favicon(
+    int $raceId,
+    ?string $websiteUrl,
+    ?string $previousWebsiteUrl,
+    ?string $previousFaviconPath
+): void {
+    $hasPreviousFavicon = $previousFaviconPath !== null && $previousFaviconPath !== '';
+
+    if ($websiteUrl === null || $websiteUrl === '') {
+        if ($hasPreviousFavicon) {
+            delete_uploaded_file($previousFaviconPath);
+            app_pdo()->prepare('UPDATE races SET favicon_path = NULL WHERE id = :id')->execute(['id' => $raceId]);
+        }
+        return;
+    }
+
+    // URL inchangée et favicon déjà présent : rien à refaire.
+    if ($websiteUrl === $previousWebsiteUrl && $hasPreviousFavicon) {
+        return;
+    }
+
+    $newFaviconPath = fetch_race_favicon($websiteUrl);
+
+    if ($newFaviconPath === null) {
+        return;
+    }
+
+    if ($hasPreviousFavicon) {
+        delete_uploaded_file($previousFaviconPath);
+    }
+
+    app_pdo()->prepare('UPDATE races SET favicon_path = :favicon_path WHERE id = :id')
+        ->execute(['favicon_path' => $newFaviconPath, 'id' => $raceId]);
+}
+
+/**
  * Crée une nouvelle course.
  *
  * @param array $payload Données du formulaire (title, start_date, end_date,
@@ -74,7 +198,8 @@ function create_race(array $payload): void
         throw new RuntimeException(implode(' ', $errors));
     }
 
-    $stmt = app_pdo()->prepare(
+    $pdo = app_pdo();
+    $stmt = $pdo->prepare(
         'INSERT INTO races (title, start_date, end_date, location, distances, website_url, registration_info, created_by)
          VALUES (:title, :start_date, :end_date, :location, :distances, :website_url, :registration_info, :created_by)'
     );
@@ -91,6 +216,10 @@ function create_race(array $payload): void
         'created_by' => $data['created_by'] !== null && $data['created_by'] > 0 ? $data['created_by'] : null,
         ]
     );
+
+    if ($data['website_url'] !== '') {
+        refresh_race_favicon((int) $pdo->lastInsertId(), $data['website_url'], null, null);
+    }
 }
 
 /**
@@ -133,6 +262,10 @@ function update_race(int $id, array $payload): void
         throw new RuntimeException(implode(' ', $errors));
     }
 
+    // Récupéré avant l'UPDATE : sert à savoir si le site a changé et à
+    // nettoyer l'ancien fichier de favicon le cas échéant.
+    $previous = get_race_by_id($id);
+
     $createdBy = $data['created_by'];
 
     $sql = 'UPDATE races
@@ -164,6 +297,13 @@ function update_race(int $id, array $payload): void
 
     $stmt = app_pdo()->prepare($sql);
     $stmt->execute($params);
+
+    refresh_race_favicon(
+        $id,
+        $data['website_url'] !== '' ? $data['website_url'] : null,
+        $previous['website_url'] ?? null,
+        $previous['favicon_path'] ?? null
+    );
 }
 
 /**
@@ -175,8 +315,14 @@ function update_race(int $id, array $payload): void
  */
 function delete_race(int $id): void
 {
+    $race = get_race_by_id($id);
+
     $stmt = app_pdo()->prepare('DELETE FROM races WHERE id = :id');
     $stmt->execute(['id' => $id]);
+
+    if ($race !== null && !empty($race['favicon_path'])) {
+        delete_uploaded_file($race['favicon_path']);
+    }
 }
 
 /**
@@ -208,7 +354,7 @@ function get_all_races(): array
 function get_upcoming_races(int $limit = 2): array
 {
     $stmt = app_pdo()->prepare(
-        'SELECT r.id, r.title, r.start_date, r.end_date, r.location, r.distances, r.website_url
+        'SELECT r.id, r.title, r.start_date, r.end_date, r.location, r.distances, r.website_url, r.favicon_path
          FROM races r
          WHERE COALESCE(r.end_date, r.start_date) >= CURDATE()
          ORDER BY r.start_date ASC

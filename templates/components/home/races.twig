@@ -6,8 +6,9 @@
         {% for race in upcomingRaces %}
             <li class="list-group-item px-0">
                 <div class="d-flex align-items-start">
-                    {% if race.website_url is not empty %}
-                        <img src="https://icons.duckduckgo.com/ip3/{{ race.website_url|replace({'https://':''})|replace({'http://':''})|split('/')[0] }}.ico" class="rounded me-2" width="20" height="20" alt="">
+                    {% set favicon = race_favicon_url(race) %}
+                    {% if favicon %}
+                        <img src="{{ favicon }}" class="rounded me-2" width="20" height="20" alt="">
                     {% else %}
                         <i class="bi bi-flag me-2"></i>
                     {% endif %}
@@ -27,7 +28,7 @@
     </ul>
     <div class="text-center mt-3">
         <a href="{{ page_url('races') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-rocket-takeoff me-2"></i>Toutes les courses
+            <i class="bi bi-rocket-takeoff me-2"></i>Les courses
         </a>
     </div>
 {% endif %}

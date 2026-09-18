@@ -45,15 +45,10 @@ if ($selectedCampaign === null) {
 }
 
 // Mode "complet" (import de la campagne) ou "adhesion" (adhésions des membres déjà en base).
-// Par défaut : "complet" pour une saison active, "adhesion" pour une saison inactive.
-// Le mode peut être forcé via GET/POST pour changer le comportement.
+// Déterminé uniquement par l'activité de la saison : "complet" si active, "adhesion"
+// sinon. Non modifiable manuellement (voir Saisons actives pour changer ce statut).
 $seasonActive = is_school_year_active((string) $selectedCampaign['school_year']);
-$explicitMode = $_POST['mode'] ?? $_GET['mode'] ?? null;
-if ($explicitMode === 'complet' || $explicitMode === 'adhesion') {
-    $mode = $explicitMode;
-} else {
-    $mode = $seasonActive ? 'complet' : 'adhesion';
-}
+$mode = $seasonActive ? 'complet' : 'adhesion';
 
 $error = null;
 $plan = null;
@@ -68,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // La case de confirmation doit être cochée pour déclencher l'import.
         if (empty($_POST['confirm'])) {
             set_flash('warning', 'Merci de cocher la case de confirmation pour valider l\'import.');
-            redirect_to('helloasso-import', ['campaign_id' => $selectedCampaignId, 'mode' => $mode]);
+            redirect_to('helloasso-import', ['campaign_id' => $selectedCampaignId]);
         }
         try {
             // L'import s'exécute en transaction : en cas d'erreur, tout est annulé (rollback).

@@ -48,26 +48,29 @@
                         <h2 class="h5 mb-3"><i class="bi bi-cloud-download me-2 text-primary"></i>Importer les adhésions</h2>
                         <p>L'import récupère toutes les adhésions d'une campagne HelloAsso et les enregistre dans la base : création des adhérents manquants et ajout de leur adhésion pour l'année scolaire.</p>
 
-                        <p><strong>Mode Complet</strong> (par défaut) :</p>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-1"></i><span>Le mode d'import n'est pas un choix : il est déterminé automatiquement par le statut de la saison de la campagne (voir <em>Saisons actives</em>). Pour changer de mode, il faut changer ce statut de la saison.</span>
+                        </div>
+
+                        <p><strong>Mode Complet</strong> — utilisé quand la saison est <strong>active</strong> :</p>
                         <ul>
                             <li>Crée les adhérents qui ne sont pas encore en base.</li>
                             <li>Ajoute l'adhésion pour tous les adhérents (nouveaux et existants).</li>
                             <li>Récupère les informations saisies dans le formulaire HelloAsso : date de naissance, téléphone, adresse, email, opt-in WhatsApp.</li>
-                            <li>A utiliser pour les saisons récentes (ex: 2025-2026, 2026-2027) où on veut tous les adhérents.</li>
+                            <li>S'applique aux saisons récentes (ex: 2025-2026, 2026-2027) où on veut tous les adhérents.</li>
                         </ul>
 
-                        <p><strong>Mode Adhésion</strong> :</p>
+                        <p><strong>Mode Adhésion</strong> — utilisé quand la saison n'est <strong>pas active</strong> :</p>
                         <ul>
                             <li>N'ajoute l'adhésion que pour les adhérents <strong>déjà en base</strong>.</li>
                             <li>Les adhérents non trouvés sont affichés dans une section « ignorés » mais ne sont pas créés.</li>
-                            <li>A utiliser pour les saisons antérieures (ex: 2018 à 2024) pour renseigner l'historique des adhésions sans créer d'anciens adhérents qui ne sont plus au club.</li>
+                            <li>S'applique aux saisons antérieures (ex: 2018 à 2024) pour renseigner l'historique des adhésions sans créer d'anciens adhérents qui ne sont plus au club.</li>
                         </ul>
 
                         <p><strong>Déroulement :</strong></p>
                         <ol>
-                            <li>Sélectionner la campagne dans le menu déroulant.</li>
-                            <li>Choisir le mode (Complet ou Adhésion).</li>
-                            <li>L'aperçu s'affiche : nouveaux adhérents, existants, et éventuels ignorés. <strong>Rien n'est encore modifié</strong>.</li>
+                            <li>Sélectionner la campagne dans le menu déroulant (par défaut c'est la dernière saison saisie dans les campagnes HelloAsso qui est sélectionnée).</li>
+                            <li>L'aperçu s'affiche, avec le mode déjà déterminé selon la saison : nouveaux adhérents, existants, et éventuels ignorés. <strong>Rien n'est encore modifié</strong>.</li>
                             <li>Vérifier les données affichées (nouveaux adhérents, différences sur les existants).</li>
                             <li>Cocher la case de confirmation et cliquer sur <em>Confirmer l'import</em>.</li>
                             <li>L'import s'exécute en une seule transaction : si une erreur survient, rien n'est modifié.</li>

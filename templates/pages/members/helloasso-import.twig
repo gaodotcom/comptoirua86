@@ -27,9 +27,9 @@
                 {# Explication du mode selon l'activité de la saison #}
                 <div class="alert alert-info mb-3">
                 {% if seasonActive %}
-                    <i class="bi bi-check-circle me-1"></i><span>La saison <strong>{{ selectedCampaign.school_year }}</strong> est une saison active. Le mode <strong>complet</strong> d'import est activé par défaut. Configuration modifiable en bas de page avant de "Confirmer l'import".</span>
+                    <i class="bi bi-check-circle me-1"></i><span>La saison <strong>{{ selectedCampaign.school_year }}</strong> est une saison active. Import en mode <strong>complet</strong> : les nouveaux adhérents sont créés et l'adhésion est ajoutée pour tous.</span>
                 {% else %}
-                    <i class="bi bi-clock-history me-1"></i><span>La saison <strong>{{ selectedCampaign.school_year }}</strong> est une saison inactive. Le mode <strong>adhésion</strong> d'import est activé par défaut. Configuration modifiable en bas de page avant de "Confirmer l'import".</span>
+                    <i class="bi bi-clock-history me-1"></i><span>La saison <strong>{{ selectedCampaign.school_year }}</strong> est une saison inactive. Import en mode <strong>adhésion</strong> : seuls les adhésions des adhérents déjà en base sont ajoutées. Les "anciens" adhérents ne sont pas ajoutés.</span>
                 {% endif %}
                 </div>
 
@@ -75,32 +75,6 @@
                             </div>
                         </div>
                     </div>
-
-                    {% if plan.ignored is not empty %}
-                        <h2 class="h6 mb-2 text-muted"><i class="bi bi-slash-circle me-1"></i>{{ plan.ignored|length }} adhésion(s) ignorée(s) — membre absent de la base</h2>
-                        <div class="table-responsive mb-4">
-                            <table class="table table-sm table-striped align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Adhérent</th>
-                                        <th>Email HelloAsso</th>
-                                        <th class="text-end">Tarif</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for e in plan.ignored %}
-                                    <tr class="text-muted">
-                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
-                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
-                                        <td class="text-end">{{ format_money(e.fee // 100) }}</td>
-                                        <td class="small">{{ format_date(e.date) }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% endif %}
 
                     {% if plan.new is not empty %}
                         <h2 class="h5 mb-2 text-danger"><i class="bi bi-person-plus me-1"></i>{{ plan.new|length }} adhérent(s) à créer</h2>
@@ -160,8 +134,8 @@
                                     <tr>
                                         <th>Adhérent</th>
                                         <th>Email HelloAsso</th>
-                                        <th class="text-end">Tarif (base / HA)</th>
-                                        <th class="text-end">Don (base / HA)</th>
+                                        <th class="text-end">Tarif</th>
+                                        <th class="text-end">Don</th>
                                         <th>Adhésion</th>
                                         <th>Diff. fiche</th>
                                     </tr>
@@ -173,16 +147,16 @@
                                         <td class="small">{{ e.adherent_email ?? '—' }}</td>
                                         <td class="text-end small">
                                             {% if e.membership_exists %}
-                                                {{ format_money(e.db_fee) }} / {{ format_money(e.fee // 100) }}
+                                                {{ format_money(e.db_fee) }} &rarr; {{ format_money(e.fee // 100) }}
                                             {% else %}
-                                                — / {{ format_money(e.fee // 100) }}
+                                                {{ format_money(e.fee // 100) }}
                                             {% endif %}
                                         </td>
                                         <td class="text-end small">
                                             {% if e.membership_exists %}
-                                                {{ format_money(e.db_donation) }} / {{ format_money(e.donation // 100) }}
+                                                {{ format_money(e.db_donation) }} &rarr; {{ format_money(e.donation // 100) }}
                                             {% else %}
-                                                — / {{ format_money(e.donation // 100) }}
+                                                {{ e.donation > 0 ? format_money(e.donation // 100) : '—' }}
                                             {% endif %}
                                         </td>
                                         <td>
@@ -235,26 +209,37 @@
                         </div>
                     {% endif %}
 
-                    {# Sélecteur de mode (en bas, avant validation) — permet de forcer le mode par défaut #}
-                    <form method="get" action="{{ page_url('helloasso-import') }}" class="alert alert-info border gap-3 mb-3 py-2" id="helloassoModeForm">
-                        <input type="hidden" name="campaign_id" value="{{ selectedCampaignId }}">
-                        <div class="fw-semibold small text-nowrap"><i class="bi bi-sliders me-1"></i>Mode d'import :</div>
-                        <div class="form-check form-check-inline mb-0">
-                            <input class="form-check-input" type="radio" name="mode" id="modeComplet" value="complet" {{ mode != 'adhesion' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <label class="form-check-label" for="modeComplet">Complet — Crée les nouveaux adhérents et ajoute les adhésions (nouveaux + renouvellements)</label>
+                    {% if plan.ignored is not empty %}
+                        <h2 class="h6 mb-2 text-muted"><i class="bi bi-slash-circle me-1"></i>{{ plan.ignored|length }} adhésion(s) ignorée(s) — membre absent de la base</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Adhérent</th>
+                                        <th>Email HelloAsso</th>
+                                        <th class="text-end">Tarif</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in plan.ignored %}
+                                    <tr class="text-muted">
+                                        <td>{{ e.first_name }} {{ e.last_name }}</td>
+                                        <td class="small">{{ e.adherent_email ?? '—' }}</td>
+                                        <td class="text-end">{{ format_money(e.fee // 100) }}</td>
+                                        <td class="small">{{ format_date(e.date) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="form-check form-check-inline mb-0">
-                            <input class="form-check-input" type="radio" name="mode" id="modeAdhesion" value="adhesion" {{ mode == 'adhesion' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <label class="form-check-label" for="modeAdhesion">Adhésion — Ajoute les adhésions des membres déjà en base uniquement (renouvellements ou historique des adhésions)</label>
-                        </div>
-                    </form>
+                    {% endif %}
 
                     {% if (mode == 'adhesion' and plan.existing is not empty) or (mode != 'adhesion' and (plan.new is not empty or plan.existing is not empty)) %}
                     <form method="post" action="{{ page_url('helloasso-import') }}" id="helloassoImportForm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="import">
                         <input type="hidden" name="campaign_id" value="{{ selectedCampaignId }}">
-                        <input type="hidden" name="mode" value="{{ mode }}" id="importMode">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="confirm" id="confirmImport" value="1" required>
                             <label class="form-check-label" for="confirmImport">
@@ -276,32 +261,6 @@
                             {% endif %}
                         </div>
                     {% endif %}
-
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        var modeForm = document.getElementById('helloassoModeForm');
-                        var importForm = document.getElementById('helloassoImportForm');
-                        var importModeInput = document.getElementById('importMode');
-
-                        if (!modeForm || !importModeInput) {
-                            return;
-                        }
-
-                        function syncImportMode() {
-                            var selectedMode = modeForm.querySelector('input[name="mode"]:checked');
-                            if (selectedMode && (selectedMode.value === 'complet' || selectedMode.value === 'adhesion')) {
-                                importModeInput.value = selectedMode.value;
-                            }
-                        }
-
-                        syncImportMode();
-                        modeForm.addEventListener('change', syncImportMode);
-
-                        if (importForm) {
-                            importForm.addEventListener('submit', syncImportMode);
-                        }
-                    });
-                    </script>
 
                 {% endif %}
             </div>
