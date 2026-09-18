@@ -7,10 +7,10 @@
         {%- if item.favicon -%}
             <img src="{{ item.favicon }}" width="14" height="14" class="rounded" alt="">
         {%- else -%}
-            <i class="bi bi-flag"></i>
+            🏁 
         {%- endif -%}
     {%- else -%}
-        <i class="bi bi-cake2"></i>
+        🎂 
     {%- endif -%}
 {% endmacro %}
 {% import _self as macros %}
@@ -72,10 +72,10 @@
     </div>
 </div>
 
-<div class="calendar-legend d-flex flex-wrap gap-2 mt-3">
-    <span class="badge chip-event fw-normal"><i class="bi bi-calendar-event me-1"></i>Rendez-vous UA86</span>
-    <span class="badge chip-race fw-normal"><i class="bi bi-flag me-1"></i>Courses</span>
-    <span class="badge chip-birthday fw-normal"><i class="bi bi-cake2 me-1"></i>Anniversaires</span>
+<div class="calendar-legend d-flex flex-wrap gap-1 gap-md-2 mt-3">
+    <span class="badge chip-event fw-normal"><img src="{{ asset_url('/public/favicon-32x32.png') }}" width="14" height="14" class="rounded me-1" alt="">Rendez-vous UA86</span>
+    <span class="badge chip-race fw-normal">🏁 Courses</span>
+    <span class="badge chip-birthday fw-normal">🎂 Anniversaires</span>
 </div>
 
 {% endblock %}
@@ -100,7 +100,7 @@
                                 <span class="calendar-day-dot chip-{{ item.type }} mt-2 flex-shrink-0"></span>
                                 <div class="flex-grow-1 min-w-0">
                                     {% if item.type == 'birthday' %}
-                                        <div><i class="bi bi-cake2 me-1"></i>Anniversaire de <strong>{{ item.full_name }}</strong> 🎂</div>
+                                        <div>🎂 Anniversaire de <strong>{{ item.full_name }}</strong></div>
                                     {% else %}
                                         <div>
                                             {{ macros.item_icon(item) }}
