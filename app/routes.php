@@ -46,6 +46,8 @@ function route_map(): array
 		'races' => 'courses',
 		'race-form' => 'partager-une-course',
 		'calendar' => 'calendrier',
+		'weekend-club-2027' => 'week-end-club-2027',
+		'weekend-club-2027-inscrits' => 'week-end-club-2027-inscrits',
 	];
 }
 

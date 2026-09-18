@@ -330,3 +330,354 @@ EOT;
 
     return send_email($email, $subject, $body);
 }
+
+/**
+ * Envoie un email de confirmation (ou de mise à jour) de préinscription au
+ * week-end club Lozère Trail 2027.
+ *
+ * @param string $email       Email du destinataire
+ * @param string $firstName   Prénom du destinataire
+ * @param array  $summaryLines Récapitulatif de la préinscription, liste de
+ *                             ['label' => string, 'value' => string]
+ * @param bool   $isUpdate    true si c'est une mise à jour d'une préinscription existante
+ * @param string $formUrl     URL complète du formulaire (pour modifier/consulter)
+ *
+ * @return bool
+ */
+function send_weekend_2027_confirmation_email(
+    string $email,
+    string $firstName,
+    array $summaryLines,
+    bool $isUpdate,
+    string $formUrl
+): bool {
+    $subject = $isUpdate
+        ? '[WE club UA86- Lozère Trail] Mise à jour de ta préinscription'
+        : '[WE club UA86- Lozère Trail] Confirmation de ta préinscription';
+    // Titre affiché dans le corps du mail : distinct de $subject pour ne pas y
+    // répéter le préfixe "[WE club UA86- Lozère Trail]" (qui n'a de sens que
+    // dans la liste des emails, pas au fil de la lecture du message).
+    $heading = $isUpdate
+        ? 'Mise à jour de ta préinscription — Week-end club Lozère Trail'
+        : 'Confirmation de ta préinscription — Week-end club Lozère Trail';
+
+    $escapedName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
+    $escapedUrl = htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8');
+    $introText = $isUpdate
+        ? 'Ta préinscription au week-end club Ultramical86 au Lozère Trail a bien été mise à jour. En voici le récapitulatif :'
+        : 'Ta préinscription au week-end club Ultramical86 au Lozère Trail (15-16 mai 2027) a bien été enregistrée. En voici le récapitulatif :';
+
+    $rows = '';
+    foreach ($summaryLines as $line) {
+        $label = htmlspecialchars((string) $line['label'], ENT_QUOTES, 'UTF-8');
+        $value = htmlspecialchars((string) $line['value'], ENT_QUOTES, 'UTF-8');
+        $rows .= "<tr><td style=\"padding:4px 12px 4px 0;color:#666;white-space:nowrap;\">$label</td><td style=\"padding:4px 0;font-weight:600;\">$value</td></tr>\n";
+    }
+
+    $body = <<<EOT
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="format-detection" content="telephone=no">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        table { border-collapse: collapse; margin: 16px 0; }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{$heading}</h2>
+
+        <p>Bonjour $escapedName,</p>
+
+        <p>$introText</p>
+
+        <table>
+            $rows
+        </table>
+
+        <p>La distance choisie est définitive une fois envoyée à l'organisateur : nous ne pourrons pas gérer les changements après cet envoi. Tu peux modifier ta préinscription tant qu'elle n'est pas encore transmise.</p>
+
+        <a href="$escapedUrl" class="button" style="color:#ffffff !important;">Voir / modifier ma préinscription</a>
+
+        <div class="footer">
+            <p>Cordialement,<br>L'équipe Ultramical86</p>
+        </div>
+    </div>
+</body>
+</html>
+EOT;
+
+    return send_email($email, $subject, $body);
+}
+
+/**
+ * Envoie une confirmation d'annulation de préinscription au week-end club
+ * Lozère Trail 2027, à l'adhérent qui vient de supprimer la sienne.
+ *
+ * @param string $email     Email du destinataire
+ * @param string $firstName Prénom du destinataire
+ * @param string $formUrl   URL complète du formulaire (pour se réinscrire si besoin)
+ *
+ * @return bool
+ */
+function send_weekend_2027_deletion_email(string $email, string $firstName, string $formUrl): bool
+{
+    $subject = '[WE club UA86- Lozère Trail] Annulation de ta préinscription';
+    // Titre affiché dans le corps du mail : distinct de $subject, cf. remarque
+    // équivalente dans send_weekend_2027_confirmation_email().
+    $heading = 'Annulation de ta préinscription — Week-end club Lozère Trail';
+
+    $escapedName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
+    $escapedUrl = htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8');
+
+    $body = <<<EOT
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{$heading}</h2>
+
+        <p>Bonjour $escapedName,</p>
+
+        <p>Ta préinscription au week-end club Ultramical86 au Lozère Trail a bien été supprimée. Toutes les informations que tu avais renseignées ont été effacées.</p>
+
+        <p>Si c'est une erreur, ou si tu changes d'avis, tu peux te réinscrire à tout moment tant que les préinscriptions ne sont pas closes.</p>
+
+        <a href="$escapedUrl" class="button" style="color:#ffffff !important;">Me réinscrire</a>
+
+        <div class="footer">
+            <p>Cordialement,<br>L'équipe Ultramical86</p>
+        </div>
+    </div>
+</body>
+</html>
+EOT;
+
+    return send_email($email, $subject, $body);
+}
+
+/**
+ * Envoie un email de notification au coéquipier·e de duo, quand l'autre
+ * membre du duo crée ou modifie sa préinscription (le choix de course lui-même
+ * étant partagé entre les deux, cf. get_weekend_2027_duo_leader_for_member()).
+ *
+ * @param string $email            Email du destinataire (le/la coéquipier·e)
+ * @param string $recipientFirstName Prénom du destinataire
+ * @param string $teammateFirstName  Prénom de l'autre membre du duo (qui vient d'enregistrer)
+ * @param string $teammateLastName   Nom de l'autre membre du duo
+ * @param array  $summaryLines      Récapitulatif partagé du duo (course, bivouac...), liste de
+ *                                  ['label' => string, 'value' => string]
+ * @param bool   $isUpdate         true si l'autre membre a modifié une préinscription déjà existante
+ * @param string $formUrl          URL complète du formulaire (pour consulter/compléter la sienne)
+ *
+ * @return bool
+ */
+function send_weekend_2027_duo_partner_notification_email(
+    string $email,
+    string $recipientFirstName,
+    string $teammateFirstName,
+    string $teammateLastName,
+    array $summaryLines,
+    bool $isUpdate,
+    string $formUrl
+): bool {
+    $teammateFullName = trim($teammateFirstName . ' ' . $teammateLastName);
+    $subject = $isUpdate
+        ? "[WE club UA86- Lozère Trail] Ton·ta coéquipier·e de duo a mis à jour sa préinscription"
+        : "[WE club UA86- Lozère Trail] Tu as été inscrit·e en duo par $teammateFullName";
+
+    $escapedRecipientName = htmlspecialchars($recipientFirstName, ENT_QUOTES, 'UTF-8');
+    $escapedTeammateName = htmlspecialchars($teammateFullName, ENT_QUOTES, 'UTF-8');
+    $escapedUrl = htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8');
+    $introText = $isUpdate
+        ? "Ton·ta coéquipier·e de duo <strong>$escapedTeammateName</strong> a mis à jour sa préinscription pour le week-end club Ultramical86 au Lozère Trail. Voici le récapitulatif de ton duo :"
+        : "<strong>$escapedTeammateName</strong> t'a désigné·e comme coéquipier·e pour l'Ultra Lozère en duo, dans le cadre du week-end club Ultramical86 au Lozère Trail (15-16 mai 2027). Voici le récapitulatif de ton duo :";
+
+    $rows = '';
+    foreach ($summaryLines as $line) {
+        $label = htmlspecialchars((string) $line['label'], ENT_QUOTES, 'UTF-8');
+        $value = htmlspecialchars((string) $line['value'], ENT_QUOTES, 'UTF-8');
+        $rows .= "<tr><td style=\"padding:4px 12px 4px 0;color:#666;white-space:nowrap;\">$label</td><td style=\"padding:4px 0;font-weight:600;\">$value</td></tr>\n";
+    }
+
+    $body = <<<EOT
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        table { border-collapse: collapse; margin: 16px 0; }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Préinscription en duo — Week-end club Lozère Trail</h2>
+
+        <p>Bonjour $escapedRecipientName,</p>
+
+        <p>$introText</p>
+
+        <table>
+            $rows
+        </table>
+
+        <p>Ce choix de course a été fait par $escapedTeammateName et n'est pas modifiable de ton côté ; pense en revanche à compléter tes propres informations (taille de maillot, hébergement, contact d'urgence...).</p>
+
+        <a href="$escapedUrl" class="button" style="color:#ffffff !important;">Voir / compléter ma préinscription</a>
+
+        <div class="footer">
+            <p>Cordialement,<br>L'équipe Ultramical86</p>
+        </div>
+    </div>
+</body>
+</html>
+EOT;
+
+    return send_email($email, $subject, $body);
+}
+
+/**
+ * Envoie un email au/à la coéquipier·e de duo quand l'autre membre du duo
+ * annule sa préinscription au week-end club Lozère Trail 2027.
+ *
+ * @param string $email               Email du destinataire (le/la coéquipier·e restant·e)
+ * @param string $recipientFirstName  Prénom du destinataire
+ * @param string $cancellerFirstName  Prénom de l'adhérent qui a annulé sa préinscription
+ * @param string $cancellerLastName   Nom de l'adhérent qui a annulé sa préinscription
+ * @param bool   $courseWasCleared    true si le choix de course du destinataire a été remis à
+ *                                    zéro (il/elle s'était inscrit·e après, son choix en dépendait)
+ * @param string $formUrl             URL complète du formulaire
+ *
+ * @return bool
+ */
+function send_weekend_2027_duo_cancellation_notification_email(
+    string $email,
+    string $recipientFirstName,
+    string $cancellerFirstName,
+    string $cancellerLastName,
+    bool $courseWasCleared,
+    string $formUrl
+): bool {
+    $cancellerFullName = trim($cancellerFirstName . ' ' . $cancellerLastName);
+    $subject = "[WE club UA86- Lozère Trail] $cancellerFullName a annulé sa préinscription";
+
+    $escapedRecipientName = htmlspecialchars($recipientFirstName, ENT_QUOTES, 'UTF-8');
+    $escapedCancellerName = htmlspecialchars($cancellerFullName, ENT_QUOTES, 'UTF-8');
+    $escapedUrl = htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8');
+
+    $mainText = $courseWasCleared
+        ? "Ton·ta coéquipier·e de duo <strong>$escapedCancellerName</strong> vient d'annuler sa préinscription au week-end club Ultramical86 au Lozère Trail. Comme ton choix de course (Ultra Lozère en duo) dépendait du sien, il a été retiré de ta préinscription — tes autres informations (taille de maillot, hébergement, contact d'urgence...) restent enregistrées."
+        : "Ton·ta coéquipier·e de duo <strong>$escapedCancellerName</strong> vient d'annuler sa préinscription au week-end club Ultramical86 au Lozère Trail.";
+
+    $actionText = $courseWasCleared
+        ? 'Merci de repasser sur le formulaire pour refaire ton choix de course dès que possible.'
+        : "Ton choix de course reste enregistré tel quel pour l'instant. Pense à le mettre à jour si besoin (rester en solo, choisir un·e nouveau/nouvelle coéquipier·e...).";
+
+    $body = <<<EOT
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Annulation de préinscription — Week-end club Lozère Trail</h2>
+
+        <p>Bonjour $escapedRecipientName,</p>
+
+        <p>$mainText</p>
+
+        <p>$actionText</p>
+
+        <a href="$escapedUrl" class="button" style="color:#ffffff !important;">Voir / modifier ma préinscription</a>
+
+        <div class="footer">
+            <p>Cordialement,<br>L'équipe Ultramical86</p>
+        </div>
+    </div>
+</body>
+</html>
+EOT;
+
+    return send_email($email, $subject, $body);
+}

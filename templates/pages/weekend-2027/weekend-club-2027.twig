@@ -1,0 +1,236 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="{{ asset_url('public/img/weekend-club-2027-logo.png') }}" alt="Logo Lozère Trail" style="height:64px;width:auto;" class="flex-shrink-0">
+                    <div class="min-w-0 flex-grow-1">
+                        <h1 class="h4 mb-0">Week-end club Ultramical86 au Lozère Trail 2027</h1>
+                        <p class="text-muted mb-0">Préinscription</p>
+                    </div>
+                    <a href="{{ page_url('weekend-club-2027-inscrits') }}" class="btn btn-outline-secondary btn-sm flex-shrink-0"><i class="bi bi-list-check"></i><span class="d-none d-md-inline ms-1">Voir les inscrits</span></a>
+                </div>
+
+                <p>Cette année Ultramical86 vous propose un week-end club au Lozère Trail, le week-end de la Pentecôte, <strong>15 et 16 mai 2027</strong>. Il y a plusieurs distances, le samedi ou le dimanche. A vous de choisir pour profiter au mieux du week-end club 🍻</p>
+                <p>Les inscriptions seront gérées directement par Ultramical86 (en inscription groupée nous bénéficions d'une réduction de 10% sur toutes les inscriptions). 
+                    <br />Nous devons savoir qui souhaite s'inscrire. <strong>La distance choisie étant définitive une fois envoyée à l'organisateur</strong>, nous ne pourrons pas gérer les changements après cet envoi.</p>
+                <p>Pour ceux qui choisissent une des courses du dimanche, vous avez aussi la possibilité de vous inscrire pour la Skyrace Gorges du Tarn le samedi.</p>
+                <p>Regardez bien les infos et les horaires des différentes courses :
+                    <br /><a href="https://www.lozeretrail.com/epreuves/" target="_blank" rel="noopener">https://www.lozeretrail.com/epreuves/</a>
+                    <br /><a href="https://www.lozeretrail.com/app/download/7526291864/Loz%C3%A8re+Trail+2026+-+R%C3%A8glement.pdf?t=1779439435" target="_blank" rel="noopener">Réglement (pdf)</a>
+                </p>
+                <p class="mb-0">Site web de l'organisateur : <a href="https://www.lozeretrail.com/" target="_blank" rel="noopener">https://www.lozeretrail.com/</a></p>
+            </div>
+        </div>
+
+        {% if closed and registration is null %}
+            <div class="alert alert-warning">
+                <i class="bi bi-lock me-1"></i>Les préinscriptions sont closes. Merci de contacter le bureau si vous souhaitez tout de même vous inscrire.
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Vos informations</h2>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center gap-3">
+                    {{ render_avatar(user, 72)|raw }}
+                    <div>
+                        <div class="fw-semibold">{{ user.first_name }} {{ user.last_name }}</div>
+                        <div class="text-muted small">{{ format_phone(user.phone) }}</div>
+                        <div class="text-muted small">{{ user.email }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if closed %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-lock me-1"></i>Les préinscriptions sont closes. Voici votre préinscription enregistrée (non modifiable).
+                </div>
+            {% endif %}
+
+            <fieldset {{ closed ? 'disabled' : '' }}>
+            <form method="post" action="{{ page_url('weekend-club-2027') }}" id="weekend2027Form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Votre ou vos course(s)</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if duoLeader %}
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-people me-1"></i>
+                                Vous avez été inscrit·e en duo avec <strong>{{ duoLeader.leader_first_name }} {{ duoLeader.leader_last_name }}</strong> pour l'<strong>{{ courses.ultra.label }}</strong>{{ duoLeader.bivouac ? ' (avec option bivouac)' : '' }}.
+                                Ce choix a été fait par {{ duoLeader.leader_first_name }} et n'est pas modifiable ici : c'est le premier inscrit du duo qui décide. Vous pouvez en revanche compléter vos informations personnelles ci-dessous.
+                            </div>
+                        {% else %}
+                        <div class="pb-3 mb-3 border-bottom">
+                            <p class="text-muted small mb-2">Samedi+dimanche :</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="courses[]" value="ultra" id="course_ultra" {{ registration and 'ultra' in registration.courses ? 'checked' : '' }}>
+                                <label class="form-check-label" for="course_ultra"><span class="fw-semibold">{{ courses.ultra.label }}</span> — {{ courses.ultra.description }} ({{ courses.ultra.day }})</label>
+                                <div class="text-muted small">{{ courses.ultra.price }}</div>
+                            </div>
+                            <div id="ultraOptions" class="mt-2 ps-4" style="display:none;">
+                                <div class="mb-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="team_mode" value="solo" id="team_mode_solo" {{ registration and registration.team_mode == 'solo' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="team_mode_solo">Solo</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="team_mode" value="duo" id="team_mode_duo" {{ registration and registration.team_mode == 'duo' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="team_mode_duo">Duo (chaque équipier doit faire une préinscription)</label>
+                                    </div>
+                                </div>
+                                <div id="duoPartnerField" class="mb-2" style="display:none;">
+                                    <label class="form-label" for="duo_partner_member_id">Coéquipier</label>
+                                    <select class="form-select" id="duo_partner_member_id" name="duo_partner_member_id">
+                                        <option value="">— Choisir —</option>
+                                        {% for m in membersForDuoSelect %}
+                                            <option value="{{ m.id }}" {{ registration and registration.duo_partner_member_id == m.id ? 'selected' : '' }}>{{ m.first_name }} {{ m.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="bivouac" value="1" id="bivouac" {{ registration and registration.bivouac ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="bivouac">Option bivouac le soir entre les 2 jours (40€ par personne)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="otherCourses">
+                            <p class="text-muted small mb-2">Ou une combinaison samedi et/ou dimanche :</p>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="courses[]" value="skyrace" id="course_skyrace" {{ registration and 'skyrace' in registration.courses ? 'checked' : '' }}>
+                                <label class="form-check-label" for="course_skyrace"><span class="fw-semibold">{{ courses.skyrace.label }}</span> — {{ courses.skyrace.description }} ({{ courses.skyrace.day }}) — {{ courses.skyrace.price }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="courses[]" value="" id="course_sunday_none" {{ sundaySelection == '' ? 'checked' : '' }}>
+                                <label class="form-check-label text-muted" for="course_sunday_none">Aucune course du dimanche (seulement la Skyrace le samedi)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="courses[]" value="trail2r" id="course_trail2r" {{ sundaySelection == 'trail2r' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="course_trail2r"><span class="fw-semibold">{{ courses.trail2r.label }}</span> — {{ courses.trail2r.description }} ({{ courses.trail2r.day }}) — {{ courses.trail2r.price }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="courses[]" value="trail27" id="course_trail27" {{ sundaySelection == 'trail27' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="course_trail27"><span class="fw-semibold">{{ courses.trail27.label }}</span> — {{ courses.trail27.description }} ({{ courses.trail27.day }}) — {{ courses.trail27.price }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="courses[]" value="salta" id="course_salta" {{ sundaySelection == 'salta' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="course_salta"><span class="fw-semibold">{{ courses.salta.label }}</span> — {{ courses.salta.description }} ({{ courses.salta.day }}) — {{ courses.salta.price }}</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Informations complémentaires</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="shirt_size">Taille de maillot finisher</label>
+                            <select class="form-select" id="shirt_size" name="shirt_size" required>
+                                <option value="">— Choisir —</option>
+                                {% for size in ['XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
+                                    <option value="{{ size }}" {{ registration and registration.shirt_size == size ? 'selected' : '' }}>{{ size }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="license_number">Numéro de PPS ou licence (facultatif)</label>
+                            <input class="form-control" type="text" id="license_number" name="license_number" value="{{ registration.license_number ?? '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Hébergement</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="accommodation" value="group" id="accommodation_group" {{ registration is null or (registration and registration.accommodation == 'group') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="accommodation_group">Avec le groupe (c'est Ultramical86 qui gère la réservation)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="accommodation" value="independent" id="accommodation_independent" {{ registration and registration.accommodation == 'independent' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="accommodation_independent">Indépendant (je gère la réservation)</label>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <label class="form-label d-block">Personne à contacter en cas d'urgence (facultatif)</label>
+                            <div class="col-md-6">
+                                <label class="form-label fw-normal" for="emergency_contact_name">Nom et prénom</label>
+                                <input class="form-control" type="text" id="emergency_contact_name" name="emergency_contact_name" value="{{ registration.emergency_contact_name ?? '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-normal" for="emergency_contact_phone">Téléphone</label>
+                                <input class="form-control" type="tel" id="emergency_contact_phone" name="emergency_contact_phone" value="{{ registration.emergency_contact_phone ?? '' }}">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <button class="btn btn-success mt-4" type="submit">{{ registration ? 'Mettre à jour ma préinscription' : 'Envoyer ma préinscription' }}</button>
+            </form>
+            </fieldset>
+
+            {% if registration and not closed %}
+                <form method="post" action="{{ page_url('weekend-club-2027') }}" class="mt-2" onsubmit="return confirm('Supprimer définitivement votre préinscription et toutes les informations associées ?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="delete_registration">
+                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash me-1"></i>Supprimer ma préinscription</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+<script>
+(function () {
+    var ultraCheckbox = document.getElementById('course_ultra');
+    var otherCourses = document.getElementById('otherCourses');
+    if (!ultraCheckbox || !otherCourses) {
+        // Choix de course verrouillé (coéquipier de duo désigné par quelqu'un d'autre) :
+        // ces éléments ne sont pas rendus, rien à faire.
+        return;
+    }
+    var ultraOptions = document.getElementById('ultraOptions');
+    var otherInputs = otherCourses.querySelectorAll('input');
+    var skyraceCheckbox = document.getElementById('course_skyrace');
+    var sundayNoneRadio = document.getElementById('course_sunday_none');
+    var duoRadio = document.getElementById('team_mode_duo');
+    var soloRadio = document.getElementById('team_mode_solo');
+    var duoPartnerField = document.getElementById('duoPartnerField');
+
+    function isOtherCourseSelected() {
+        return skyraceCheckbox.checked || !sundayNoneRadio.checked;
+    }
+
+    function updateUltraState() {
+        var isUltra = ultraCheckbox.checked;
+        ultraOptions.style.display = isUltra ? '' : 'none';
+        otherInputs.forEach(function (input) { input.disabled = isUltra; });
+    }
+
+    function updateOtherCoursesState() {
+        ultraCheckbox.disabled = isOtherCourseSelected();
+    }
+
+    function updateDuoState() {
+        duoPartnerField.style.display = duoRadio.checked ? '' : 'none';
+    }
+
+    ultraCheckbox.addEventListener('change', updateUltraState);
+    duoRadio.addEventListener('change', updateDuoState);
+    soloRadio.addEventListener('change', updateDuoState);
+    otherInputs.forEach(function (input) { input.addEventListener('change', updateOtherCoursesState); });
+
+    updateUltraState();
+    updateOtherCoursesState();
+    updateDuoState();
+})();
+</script>
+{% endblock %}

@@ -21,6 +21,7 @@ require __DIR__ . '/app/events.php';
 require __DIR__ . '/app/news.php';
 require __DIR__ . '/app/races.php';
 require __DIR__ . '/app/calendar.php';
+require __DIR__ . '/app/weekend_club_2027.php';
 require __DIR__ . '/app/uploads.php';
 require __DIR__ . '/app/helpers.php';
 require __DIR__ . '/app/twig.php';

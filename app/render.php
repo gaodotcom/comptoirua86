@@ -44,6 +44,8 @@ function page_subdir(string $pageName): string
         'races' => 'races',
         'race-form' => 'races',
         'calendar' => 'calendar',
+        'weekend-club-2027' => 'weekend-2027',
+        'weekend-club-2027-inscrits' => 'weekend-2027',
     ];
 
     return $mapping[$pageName] ?? '';

@@ -1,0 +1,59 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3 flex-wrap">
+    <i class="bi bi-signpost-split fs-4 lh-1 flex-shrink-0"></i>
+    <h1 class="h4 mb-0 flex-grow-1 min-w-0">Week-end club 2027 — Inscrits</h1>
+    <div class="d-flex gap-2 flex-shrink-0">
+        <a href="{{ page_url('weekend-club-2027') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i><span class="d-none d-md-inline ms-1">Retour au formulaire</span></a>
+        {% if is_admin() %}
+            <a href="{{ page_url('weekend-club-2027-inscrits', {'export': 'csv'}) }}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-spreadsheet"></i><span class="d-none d-md-inline ms-1">Exporter en CSV</span></a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="alert {{ closed ? 'alert-warning' : 'alert-success' }} d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span>
+        {% if closed %}<i class="bi bi-lock me-1"></i>Les préinscriptions sont closes.{% else %}<i class="bi bi-unlock me-1"></i>Les préinscriptions sont ouvertes.{% endif %}
+        <strong>{{ registrations|length }}</strong> préinscrit{{ registrations|length > 1 ? 's' }}.
+    </span>
+    {% if is_admin() %}
+    <form method="post" action="{{ page_url('weekend-club-2027-inscrits') }}" class="m-0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="toggle_closed">
+        <button class="btn btn-sm {{ closed ? 'btn-success' : 'btn-outline-danger' }}" type="submit">
+            {{ closed ? 'Rouvrir les préinscriptions' : 'Clôturer les préinscriptions' }}
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+{% if registrations is empty %}
+    <div class="alert alert-secondary">Aucune préinscription pour le moment.</div>
+{% else %}
+    <div class="row g-2">
+        {% for r in registrations %}
+        <div class="col-6 col-md-3 col-lg-2">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center p-2">
+                    {{ render_avatar({'first_name': r.member_first_name, 'last_name': r.member_last_name, 'photo_path': r.member_photo_path}, 72)|raw }}
+                    <h2 class="h6 mt-2 mb-1">{{ r.member_first_name }} {{ r.member_last_name }}</h2>
+                    <div class="mb-2">
+                        {% for code in r.courses %}
+                            <span class="badge text-bg-primary"><i class="bi bi-signpost-2 me-1"></i>{{ weekend_2027_course_label(code) }}</span>
+                        {% endfor %}
+                    </div>
+                    {% if is_admin() %}
+                    <div class="text-muted small text-start">
+                        {% if r.team_mode %}<div><i class="bi bi-people me-1"></i>{{ r.team_mode == 'duo' ? 'Duo avec ' ~ r.duo_partner_first_name ~ ' ' ~ r.duo_partner_last_name : 'Solo' }}</div>{% endif %}
+                        {% if r.bivouac %}<div><i class="bi bi-moon-stars me-1"></i>Bivouac</div>{% endif %}
+                        <div><i class="bi bi-{{ r.member_gender == 'F' ? 'person-standing-dress' : 'person-standing' }} me-1"></i>Maillot {{ r.shirt_size }}</div>
+                        <div><i class="bi bi-house me-1"></i>{{ r.accommodation == 'group' ? 'Avec Ultramical86' : 'Indépendant' }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
