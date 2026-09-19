@@ -174,7 +174,9 @@
                     </div>
                 </div>
 
+                {% if not closed %}
                 <button class="btn btn-success mt-4" type="submit">{{ registration ? 'Mettre à jour ma préinscription' : 'Envoyer ma préinscription' }}</button>
+                {% endif %}
             </form>
             </fieldset>
 
@@ -182,7 +184,7 @@
                 <form method="post" action="{{ page_url('weekend-club-2027') }}" class="mt-2" onsubmit="return confirm('Supprimer définitivement votre préinscription et toutes les informations associées ?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="action" value="delete_registration">
-                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash me-1"></i>Supprimer ma préinscription</button>
+                    <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash me-1"></i>Supprimer ma préinscription</button>
                 </form>
             {% endif %}
         {% endif %}

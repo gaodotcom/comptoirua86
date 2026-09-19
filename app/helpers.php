@@ -271,15 +271,21 @@ function text_to_html(string $text): string
 {
     $escaped = e($text);
 
+    $siteHost = strtolower((string) preg_replace('/^www\./i', '', (string) parse_url(app_config()['base_url'] ?? '', PHP_URL_HOST)));
+
     // Détecter les URLs (http://, https://, www.)
     $pattern = '/(https?:\/\/[^\s<]+|www\.[^\s<]+)/i';
     $escaped = preg_replace_callback(
         $pattern,
-        static function (array $matches): string {
+        static function (array $matches) use ($siteHost): string {
             $url = $matches[1];
             $href = str_starts_with($url, 'www.') ? 'https://' . $url : $url;
 
-            return '<a href="' . e($href) . '" target="_blank" rel="noopener">' . e($url) . '</a>';
+            $linkHost = strtolower((string) preg_replace('/^www\./i', '', (string) parse_url($href, PHP_URL_HOST)));
+            $isInternal = $siteHost !== '' && $linkHost === $siteHost;
+            $attrs = $isInternal ? '' : ' target="_blank" rel="noopener"';
+
+            return '<a href="' . e($href) . '"' . $attrs . '>' . e($url) . '</a>';
         },
         $escaped
     );

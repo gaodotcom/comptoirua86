@@ -17,15 +17,6 @@
                 <div class="card-header page-card-header bg-white d-flex align-items-baseline align-items-md-center gap-2">
                     <i class="bi bi-clipboard2-pulse fs-4 me-1 flex-shrink-0"></i>
                     <span class="fs-4 flex-grow-1">{{ training.title }} <span class="fw-normal">({{ format_date(training.week_start) }})</span></span>
-                    {% if can_manage_trainings() %}
-                        <div class="flex-shrink-0 d-flex flex-column flex-md-row align-items-end align-items-md-center gap-1 gap-md-2">
-                            <a href="{{ page_url('training-edit', {'id': training.id}) }}" class="btn btn-outline-success btn-sm py-0 px-1" title="Modifier"><i class="bi bi-pencil"></i></a>
-                            <form method="post" action="{{ page_url('trainings') }}" onsubmit="return confirm('Supprimer cet entraînement ?');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_training"><input type="hidden" name="training_id" value="{{ training.id }}">
-                                <button class="btn btn-outline-danger btn-sm py-0 px-1" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </div>
-                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -38,6 +29,15 @@
                         </div>
                     </div>
                 </div>
+                {% if can_manage_trainings() %}
+                    <div class="card-footer bg-transparent d-flex gap-1 justify-content-end">
+                        <a href="{{ page_url('training-edit', {'id': training.id}) }}" class="btn btn-outline-success btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                        <form method="post" action="{{ page_url('trainings') }}" onsubmit="return confirm('Supprimer cet entraînement ?');" class="d-inline-flex m-0">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_training"><input type="hidden" name="training_id" value="{{ training.id }}">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -51,20 +51,20 @@
                     <div class="card-header page-card-header bg-white d-flex align-items-baseline align-items-md-center gap-2">
                         <i class="bi bi-clipboard2-pulse {{ loop.index <= 3 ? 'fs-5' : 'fs-6' }} me-1 flex-shrink-0"></i>
                         <span class="{{ loop.index <= 3 ? 'fs-5' : 'fs-6' }} flex-grow-1">{{ training.title }}</span>
-                        {% if can_manage_trainings() %}
-                            <div class="flex-shrink-0 d-flex flex-column flex-md-row align-items-end align-items-md-center gap-1 gap-md-1">
-                                <a href="{{ page_url('training-edit', {'id': training.id}) }}" class="btn btn-outline-success btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
-                                <form method="post" action="{{ page_url('trainings') }}" onsubmit="return confirm('Supprimer cet entraînement ?');" class="d-inline-flex m-0">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_training"><input type="hidden" name="training_id" value="{{ training.id }}">
-                                    <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
-                                </form>
-                            </div>
-                        {% endif %}
                     </div>
                     <div class="card-body">
                         <img src="{{ asset_url(training.image_path) }}" class="img-fluid rounded" alt="Image entraînement">
                         {% if loop.index <= 3 and training.comment_text is not empty %}<div class="alert alert-warning mt-3 mb-0"><div>{{ training.comment_text|nl2br }}</div></div>{% endif %}
                     </div>
+                    {% if can_manage_trainings() %}
+                        <div class="card-footer bg-transparent d-flex gap-1 justify-content-end">
+                            <a href="{{ page_url('training-edit', {'id': training.id}) }}" class="btn btn-outline-success btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ page_url('trainings') }}" onsubmit="return confirm('Supprimer cet entraînement ?');" class="d-inline-flex m-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_training"><input type="hidden" name="training_id" value="{{ training.id }}">
+                                <button class="btn btn-outline-danger btn-sm py-0 px-1 d-inline-flex align-items-center" type="submit" title="Supprimer"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}

@@ -335,11 +335,11 @@ main, footer, nav {
   .list-group-item {
     padding-top: 0.75rem !important;
     padding-bottom: 0.75rem !important;
-    font-size: 0.95rem;
+    font-size: 0.95rem
   }
 
   /* Card-header : titre et boutons qui se tassent proprement */
-  .card-header { flex-wrap: wrap; gap: 0.5rem; }
+  .card-header { flex-wrap: wrap; gap: 0; }
   .card-header .btn { margin-top: 0.25rem; }
   .card-header .fs-4 { font-size: 1.1rem !important; }
   .card-header .fs-5 { font-size: 1rem !important; }

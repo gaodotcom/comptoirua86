@@ -18,14 +18,14 @@
                 {% set race = card.race %}{% set responses = card.responses %}{% set myResponse = card.myResponse %}{% set canEdit = card.canEdit %}
                 <div class="col-12 col-md-6 anchor-target" id="course-{{ race.id }}">
                     <div class="card shadow-sm h-100">
-                        <div class="card-header page-card-header bg-white d-flex justify-content-between align-items-start">
-                            <div class="d-flex align-items-start gap-2">
+                        <div class="card-header page-card-header bg-white d-flex flex-wrap align-items-center">
+                            <div class="d-flex align-items-center gap-2">
                                 {% set favicon = race_favicon_url(race) %}
-                                {% if favicon %}<img src="{{ favicon }}" class="rounded mt-1" width="24" height="24" alt="">{% endif %}
+                                {% if favicon %}<img src="{{ favicon }}" class="rounded mt-1 flex-shrink-0" width="24" height="24" alt="">{% endif %}
                                 <span class="fs-4" style="line-height:1.2;">{{ race.title }}</span>
                             </div>
                             {% if canEdit %}
-                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <div class="d-flex align-items-center gap-2 ms-auto">
                                     <a href="{{ page_url('race-form', {'id': race.id}) }}" class="btn btn-outline-primary btn-sm py-0 px-1 d-inline-flex align-items-center" title="Modifier">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -85,7 +85,7 @@
                 <div class="col-12 anchor-target" id="course-{{ race.id }}">
                     <div class="card shadow-sm">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                                 <div>
                                     {% set favicon = race_favicon_url(race) %}
                                     {% if favicon %}<img src="{{ favicon }}" class="rounded me-1" width="20" height="20" alt="">{% endif %}

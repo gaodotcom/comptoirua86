@@ -259,4 +259,11 @@ Défini en dur dans `weekend_2027_courses()` (`app/weekend_club_2027.php`),
   complémentaires (formule, bivouac, maillot, hébergement) que pour les
   admins ; tout le monde voit avatar + nom + prénom + course(s).
 
+- **2026-09-19** : le bouton d'envoi/mise à jour de la préinscription
+  (`weekend-club-2027.twig`) est maintenant masqué quand les
+  préinscriptions sont closes, comme le bouton « Supprimer ma
+  préinscription ». Avant, le bouton restait affiché mais désactivé
+  (juste grisé par l'attribut `disabled` du `<fieldset>` englobant),
+  ce qui prêtait à confusion.
+
 _À compléter au fil des prochains ajustements sur cette page._
