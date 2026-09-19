@@ -25,7 +25,7 @@
                     <div class="mb-3"><label class="form-label" for="description">Description (facultatif)</label><textarea class="form-control" id="description" name="description" rows="4">{{ description }}</textarea></div>
                     <div class="form-check mb-3"><input class="form-check-input" type="checkbox" value="1" id="published" name="published" {{ published ? 'checked' : '' }}><label class="form-check-label" for="published">Publier cet événement</label></div>
                     <button class="btn btn-success mt-4" type="submit">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
-                    <a href="{{ page_url('events') }}" class="btn btn-outline-secondary mt-4 ms-2">Annuler</a>
+                    <a href="{{ page_url('events') }}" class="btn btn-outline-secondary mt-4 ms-2" onclick="if (document.referrer.indexOf(window.location.origin) === 0) { history.back(); return false; }">Annuler</a>
                 </form>
             </div>
         </div>

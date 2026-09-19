@@ -14,7 +14,7 @@
                     <div class="mb-3"><label class="form-label" for="content">Contenu</label><textarea class="form-control" id="content" name="content" rows="8" required>{{ newsContent }}</textarea></div>
                     <div class="form-check mb-3"><input class="form-check-input" type="checkbox" value="1" id="published" name="published" {{ newsPublished ? 'checked' : '' }}><label class="form-check-label" for="published">Publier</label></div>
                     <button class="btn btn-success" type="submit">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
-                    <a href="{{ page_url('news') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+                    <a href="{{ page_url('news') }}" class="btn btn-outline-secondary ms-2" onclick="if (document.referrer.indexOf(window.location.origin) === 0) { history.back(); return false; }">Annuler</a>
                 </form>
             </div>
         </div>

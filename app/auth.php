@@ -73,6 +73,8 @@ function login_user(int $userId, bool $mustSetPassword): void
  */
 function logout_user(): void
 {
+    clear_remember_me_token();
+
     $_SESSION = [];
 
     if (ini_get('session.use_cookies')) {
@@ -89,6 +91,136 @@ function logout_user(): void
     }
 
     session_destroy();
+}
+
+/* ============================================================================
+   Connexion mémorisée ("Rester connecté")
+   ============================================================================ */
+
+/** Nom du cookie de connexion mémorisée. */
+const REMEMBER_COOKIE_NAME = 'remember_me';
+
+/** Durée de vie glissante du "Rester connecté" (en secondes) : 90 jours. */
+const REMEMBER_TOKEN_LIFETIME = 90 * 24 * 60 * 60;
+
+/**
+ * Crée un nouveau token "Rester connecté" pour un membre : enregistre en
+ * base le sélecteur (non secret, sert de clé de recherche) et le hash du
+ * validateur (jamais le secret en clair), et pose le cookie correspondant.
+ * Utilisée à la connexion (si la case est cochée) et à chaque renouvellement
+ * glissant, cf. attempt_remember_me_login().
+ *
+ * @param int $memberId Identifiant de l'adhérent
+ *
+ * @return void
+ */
+function issue_remember_me_token(int $memberId): void
+{
+    $selector = bin2hex(random_bytes(9));
+    $validator = bin2hex(random_bytes(32));
+    $expiresAt = date('Y-m-d H:i:s', time() + REMEMBER_TOKEN_LIFETIME);
+
+    $stmt = app_pdo()->prepare(
+        'INSERT INTO remember_tokens (member_id, selector, validator_hash, expires_at)
+         VALUES (:member_id, :selector, :validator_hash, :expires_at)'
+    );
+    $stmt->execute([
+        'member_id' => $memberId,
+        'selector' => $selector,
+        'validator_hash' => hash('sha256', $validator),
+        'expires_at' => $expiresAt,
+    ]);
+
+    setcookie(REMEMBER_COOKIE_NAME, $selector . ':' . $validator, [
+        'expires' => time() + REMEMBER_TOKEN_LIFETIME,
+        'path' => '/',
+        'secure' => is_https(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+/**
+ * Supprime le token "Rester connecté" courant (base + cookie), à la déconnexion.
+ *
+ * @return void
+ */
+function clear_remember_me_token(): void
+{
+    $cookie = $_COOKIE[REMEMBER_COOKIE_NAME] ?? '';
+
+    if (is_string($cookie) && str_contains($cookie, ':')) {
+        [$selector] = explode(':', $cookie, 2);
+        app_pdo()->prepare('DELETE FROM remember_tokens WHERE selector = :selector')
+            ->execute(['selector' => $selector]);
+    }
+
+    setcookie(REMEMBER_COOKIE_NAME, '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => is_https(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+
+    unset($_COOKIE[REMEMBER_COOKIE_NAME]);
+}
+
+/**
+ * Reconnecte automatiquement un membre via son cookie "Rester connecté" si
+ * aucune session active n'existe. À appeler une seule fois, tôt dans le
+ * routeur, avant le premier appel à current_user().
+ *
+ * Fait glisser l'expiration à chaque utilisation : l'ancien sélecteur est
+ * consommé (supprimé) et un nouveau token est émis, ce qui prolonge la
+ * fenêtre de 90 jours tant que le site est utilisé régulièrement. Si le
+ * sélecteur est connu mais le validateur ne correspond pas (rejeu possible
+ * d'un cookie déjà consommé/volé), tous les tokens du membre sont invalidés
+ * par précaution.
+ *
+ * @return void
+ */
+function attempt_remember_me_login(): void
+{
+    if (!empty($_SESSION['user_id'])) {
+        return;
+    }
+
+    $cookie = $_COOKIE[REMEMBER_COOKIE_NAME] ?? null;
+
+    if (!is_string($cookie) || !str_contains($cookie, ':')) {
+        return;
+    }
+
+    [$selector, $validator] = explode(':', $cookie, 2);
+
+    $stmt = app_pdo()->prepare(
+        'SELECT rt.id, rt.member_id, rt.validator_hash, m.password_hash
+         FROM remember_tokens rt
+         INNER JOIN members m ON m.id = rt.member_id
+         WHERE rt.selector = :selector AND rt.expires_at > NOW() AND m.deleted_at IS NULL
+         LIMIT 1'
+    );
+    $stmt->execute(['selector' => $selector]);
+    $token = $stmt->fetch();
+
+    if ($token === false) {
+        clear_remember_me_token();
+        return;
+    }
+
+    if (!hash_equals((string) $token['validator_hash'], hash('sha256', $validator))) {
+        app_pdo()->prepare('DELETE FROM remember_tokens WHERE member_id = :member_id')
+            ->execute(['member_id' => $token['member_id']]);
+        clear_remember_me_token();
+        return;
+    }
+
+    app_pdo()->prepare('DELETE FROM remember_tokens WHERE id = :id')->execute(['id' => $token['id']]);
+
+    $memberId = (int) $token['member_id'];
+    login_user($memberId, empty($token['password_hash']));
+    issue_remember_me_token($memberId);
 }
 
 /**
@@ -208,7 +340,8 @@ function require_login(): void
 
     if ($user === null) {
         set_flash('warning', 'Merci de vous connecter pour accéder a cette page.');
-        redirect_to('login');
+        $target = safe_internal_redirect_path($_SERVER['REQUEST_URI'] ?? null);
+        redirect_to('login', $target !== null ? ['redirect' => $target] : []);
     }
 
     // Les pages change-password et logout ne sont pas bloquées par l'inactivité.
@@ -319,6 +452,7 @@ function page_access_level(string $page): string
         'active-years' => 'admin',
         'helloasso-campaigns' => 'admin',
         'helloasso-import' => 'admin',
+        'local-races-import' => 'admin',
     ];
 
     return $map[$page] ?? 'connected';

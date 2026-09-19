@@ -68,6 +68,21 @@ if (is_admin() && ($_GET['export'] ?? '') === 'csv') {
     exit;
 }
 
+// Sa propre préinscription (si elle existe) en premier dans la liste — pratique
+// comme rappel/confirmation de ce qu'on a soi-même choisi. Tri stable (PHP 8+) :
+// l'ordre alphabétique existant est conservé pour tous les autres.
+$memberId = (int) $user['id'];
+usort($registrations, static function (array $a, array $b) use ($memberId): int {
+    $aIsMe = (int) $a['member_id'] === $memberId;
+    $bIsMe = (int) $b['member_id'] === $memberId;
+
+    if ($aIsMe === $bIsMe) {
+        return 0;
+    }
+
+    return $aIsMe ? -1 : 1;
+});
+
 twig_render('pages/weekend-2027/weekend-club-2027-inscrits.twig', [
     'title' => 'Week-end club 2027 — Inscrits',
     'registrations' => $registrations,

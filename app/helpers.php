@@ -67,6 +67,25 @@ function page_url(string $page, array $params = []): string
     return base_url('/' . $slug . '?' . http_build_query($params));
 }
 
+/**
+ * Valide qu'une chaîne est un chemin interne sûr vers lequel rediriger (pour
+ * "revenir à la page demandée" après connexion). Rejette tout ce qui pourrait
+ * pointer hors du site (redirection ouverte) : URL absolue, protocole-relative
+ * ("//evil.com"), ou astuce à base d'antislash.
+ *
+ * @param string|null $path Valeur brute à valider (ex: paramètre GET/POST 'redirect')
+ *
+ * @return string|null Le chemin s'il est sûr, sinon null
+ */
+function safe_internal_redirect_path(?string $path): ?string
+{
+    if ($path === null || $path === '') {
+        return null;
+    }
+
+    return preg_match('#^/(?![/\\\\])#', $path) === 1 ? $path : null;
+}
+
 /* ============================================================================
    Aide au formatage
    ============================================================================ */

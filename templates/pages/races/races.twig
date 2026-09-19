@@ -6,7 +6,7 @@
     <div class="flex-shrink-0">
         <a class="btn btn-outline-primary btn-sm" href="{{ page_url('calendar') }}" title="Voir le calendrier"><i class="bi bi-calendar3"></i><span class="d-none d-md-inline ms-1">Calendrier</span></a>
         <a class="btn btn-sm {{ mineOnly ? 'btn-success' : 'btn-outline-success' }}" href="{{ page_url('races', mineOnly ? {} : {'filter': 'mine'}) }}"><i class="bi bi-funnel"></i><span class="d-none d-md-inline ms-1">Mes courses</span></a>
-        <a class="btn btn-outline-success btn-sm" href="{{ page_url('race-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter une course</span></a>
+        <a class="btn btn-outline-success btn-sm" href="{{ page_url('race-form') }}"><i class="bi bi-plus-circle"></i><span class="d-none d-md-inline ms-1">Ajouter une course</span></a>
     </div>
 </div>
 {% if upcomingRaceCards is empty and pastRaceCards is empty %}

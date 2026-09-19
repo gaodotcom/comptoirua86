@@ -137,6 +137,26 @@ function get_calendar_items(string $from, string $to): array
         ], (string) $race['start_date'], $end, $from, $to);
     }
 
+    // Courses officielles FFA importées (voir app/local_races.php).
+    $stmt = $pdo->prepare(
+        'SELECT id, title, start_date, end_date, city, detail_url
+         FROM local_races
+         WHERE start_date <= :to AND COALESCE(end_date, start_date) >= :from
+         ORDER BY start_date ASC, title ASC'
+    );
+    $stmt->execute(['from' => $from, 'to' => $to]);
+
+    foreach ($stmt->fetchAll() as $localRace) {
+        $end = (string) ($localRace['end_date'] ?? $localRace['start_date']);
+        calendar_add_item($days, [
+            'type' => 'ffa_race',
+            'title' => $localRace['title'],
+            'details' => (string) ($localRace['city'] ?? ''),
+            'dates' => format_date_range((string) $localRace['start_date'], $localRace['end_date']),
+            'url' => $localRace['detail_url'],
+        ], (string) $localRace['start_date'], $end, $from, $to);
+    }
+
     // Anniversaires des adhérents actifs (mêmes critères que le trombinoscope).
     $stmt = $pdo->query(
         'SELECT id, first_name, last_name, date_of_birth
@@ -176,8 +196,8 @@ function get_calendar_items(string $from, string $to): array
         }
     }
 
-    // Ordre d'affichage dans une journée : événements, courses, anniversaires.
-    $order = ['event' => 0, 'race' => 1, 'birthday' => 2];
+    // Ordre d'affichage dans une journée : événements, courses, courses FFA, anniversaires.
+    $order = ['event' => 0, 'race' => 1, 'ffa_race' => 2, 'birthday' => 3];
     foreach ($days as &$items) {
         usort($items, static fn (array $a, array $b): int => $order[$a['type']] <=> $order[$b['type']]);
     }
@@ -212,6 +232,8 @@ function get_calendar_navigable_bounds(): array
             SELECT DATE_FORMAT(start_date, "%Y-%m") AS ym FROM events
             UNION ALL
             SELECT DATE_FORMAT(start_date, "%Y-%m") AS ym FROM races
+            UNION ALL
+            SELECT DATE_FORMAT(start_date, "%Y-%m") AS ym FROM local_races
         ) far'
     )->fetchColumn();
 

@@ -11,7 +11,7 @@
     </div>
 </div>
 
-<div class="alert {{ closed ? 'alert-warning' : 'alert-success' }} d-flex justify-content-between align-items-center flex-wrap gap-2">
+<div class="alert {{ closed ? 'alert-warning' : 'alert-success' }} d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
     <span>
         {% if closed %}<i class="bi bi-lock me-1"></i>Les préinscriptions sont closes.{% else %}<i class="bi bi-unlock me-1"></i>Les préinscriptions sont ouvertes.{% endif %}
         <strong>{{ registrations|length }}</strong> préinscrit{{ registrations|length > 1 ? 's' }}.
@@ -27,6 +27,10 @@
     {% endif %}
 </div>
 
+{# Libellés raccourcis pour les badges des cards uniquement (le formulaire, les
+   emails et le CSV gardent le libellé complet de weekend_2027_course_label()). #}
+{% set courseBadgeLabels = {'skyrace': 'Skyrace', 'trail2r': 'Trail 2 Rivières'} %}
+
 {% if registrations is empty %}
     <div class="alert alert-secondary">Aucune préinscription pour le moment.</div>
 {% else %}
@@ -39,10 +43,10 @@
                     <h2 class="h6 mt-2 mb-1">{{ r.member_first_name }} {{ r.member_last_name }}</h2>
                     <div class="mb-2">
                         {% for code in r.courses %}
-                            <span class="badge text-bg-primary"><i class="bi bi-signpost-2 me-1"></i>{{ weekend_2027_course_label(code) }}</span>
+                            <span class="badge text-bg-primary"><i class="bi bi-signpost-2 me-1"></i>{{ courseBadgeLabels[code] ?? weekend_2027_course_label(code) }}</span>
                         {% endfor %}
                     </div>
-                    {% if is_admin() %}
+                    {% if is_admin() or r.member_id == user.id %}
                     <div class="text-muted small text-start">
                         {% if r.team_mode %}<div><i class="bi bi-people me-1"></i>{{ r.team_mode == 'duo' ? 'Duo avec ' ~ r.duo_partner_first_name ~ ' ' ~ r.duo_partner_last_name : 'Solo' }}</div>{% endif %}
                         {% if r.bivouac %}<div><i class="bi bi-moon-stars me-1"></i>Bivouac</div>{% endif %}

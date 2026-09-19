@@ -40,12 +40,12 @@
 {% for member in members %}
     {% set isBureau = (member.is_bureau ?? 0) == 1 %}
     {% set isTest = (member.generic_account ?? 0) == 1 %}
-    <div class="col-12 col-md-6 col-lg-4 trombi-item" data-last_name="{{ member.last_name|lower }}" data-first_name="{{ member.first_name|lower }}" data-renewal="{{ member.id in renewalPendingIds ? '1' : '0' }}">
+    <div class="col-6 col-lg-3 trombi-item" data-last_name="{{ member.last_name|lower }}" data-first_name="{{ member.first_name|lower }}" data-renewal="{{ member.id in renewalPendingIds ? '1' : '0' }}">
         <div class="card h-100 shadow-sm {{ isTest ? 'bg-body-secondary' : '' }}">
             <div class="card-body text-center">
                 {% set canViewProfile = can_view_detailed_members() or member.id == (user.id ?? 0) %}
                 {% if canViewProfile %}<a href="{{ page_url('profile', member.id == (user.id ?? 0) ? {} : {'id': member.id}) }}" class="text-decoration-none">{% endif %}
-                {{ render_avatar(member, 200)|raw }}
+                {{ render_avatar(member, 120)|raw }}
                 {% if canViewProfile %}</a>{% endif %}
                 <div class="trombi-info">
                     <h2 class="h6 mt-3 mb-1">{% if canViewProfile %}<a href="{{ page_url('profile', member.id == (user.id ?? 0) ? {} : {'id': member.id}) }}" class="text-decoration-none text-body">{% endif %}{{ member.first_name ~ ' ' ~ member.last_name }}{% if canViewProfile %}</a>{% endif %}</h2>

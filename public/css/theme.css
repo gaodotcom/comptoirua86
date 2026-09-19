@@ -442,6 +442,43 @@ main, footer, nav {
     }
 }
 
+/* Trombinoscope : vue cards — taille d'avatar croissante avec la largeur de
+   colonne (col-6 puis col-md-3, toujours 4 colonnes au-delà mais plus larges).
+   Un seul élément rendu par carte (une seule requête image par adhérent) : on
+   ne fait varier que la taille en CSS, jamais en dupliquant le render_avatar()
+   dans plusieurs <div> cachés par breakpoint (un display:none ne dispense pas
+   le navigateur de charger l'image). */
+.trombi-cards .trombi-item .card-body img,
+.trombi-cards .trombi-item .card-body .avatar-placeholder {
+    width: 120px !important;
+    height: 120px !important;
+    font-size: 42px !important;
+}
+@media (min-width: 768px) {
+    .trombi-cards .trombi-item .card-body img,
+    .trombi-cards .trombi-item .card-body .avatar-placeholder {
+        width: 125px !important;
+        height: 125px !important;
+        font-size: 44px !important;
+    }
+}
+@media (min-width: 992px) {
+    .trombi-cards .trombi-item .card-body img,
+    .trombi-cards .trombi-item .card-body .avatar-placeholder {
+        width: 180px !important;
+        height: 180px !important;
+        font-size: 63px !important;
+    }
+}
+@media (min-width: 1200px) {
+    .trombi-cards .trombi-item .card-body img,
+    .trombi-cards .trombi-item .card-body .avatar-placeholder {
+        width: 200px !important;
+        height: 200px !important;
+        font-size: 72px !important;
+    }
+}
+
 /* ============================================================================
    Recherche membres
    ============================================================================ */
@@ -590,6 +627,7 @@ a > .card:hover {
 :root {
   --cal-event: var(--bs-primary);
   --cal-race: #7cb342;
+  --cal-ffa-race: #2e7d32;
   --cal-birthday: #c2478f;
 }
 
@@ -680,6 +718,7 @@ a > .card:hover {
 
 .calendar-day-chip.chip-event { background-color: var(--cal-event); }
 .calendar-day-chip.chip-race { background-color: var(--cal-race); }
+.calendar-day-chip.chip-ffa_race { background-color: var(--cal-ffa-race); }
 .calendar-day-chip.chip-birthday { background-color: var(--cal-birthday); }
 
 .calendar-day-dot {
@@ -692,6 +731,7 @@ a > .card:hover {
 
 .calendar-day-dot.chip-event { background-color: var(--cal-event); }
 .calendar-day-dot.chip-race { background-color: var(--cal-race); }
+.calendar-day-dot.chip-ffa_race { background-color: var(--cal-ffa-race); }
 .calendar-day-dot.chip-birthday { background-color: var(--cal-birthday); }
 
 /* Pictos du jour en vue mobile : un petit rond blanc cerclé de la couleur du
@@ -721,15 +761,24 @@ a > .card:hover {
 
 .calendar-day-icon.chip-event { border-color: var(--cal-event); color: var(--cal-event); }
 .calendar-day-icon.chip-race { border-color: var(--cal-race); color: var(--cal-race); }
+.calendar-day-icon.chip-ffa_race { border-color: var(--cal-ffa-race); color: var(--cal-ffa-race); }
 .calendar-day-icon.chip-birthday { border-color: var(--cal-birthday); color: var(--cal-birthday); }
 
 .calendar-legend .badge {
   font-weight: 500;
   color: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+
+.calendar-legend .badge.filter-off {
+  opacity: 0.35;
 }
 
 .calendar-legend .chip-event { background-color: var(--cal-event); }
 .calendar-legend .chip-race { background-color: var(--cal-race); }
+.calendar-legend .chip-ffa_race { background-color: var(--cal-ffa-race); }
 .calendar-legend .chip-birthday { background-color: var(--cal-birthday); }
 
 @media (max-width: 767.98px) {

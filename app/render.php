@@ -46,6 +46,7 @@ function page_subdir(string $pageName): string
         'calendar' => 'calendar',
         'weekend-club-2027' => 'weekend-2027',
         'weekend-club-2027-inscrits' => 'weekend-2027',
+        'local-races-import' => 'local-races',
     ];
 
     return $mapping[$pageName] ?? '';

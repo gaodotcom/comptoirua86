@@ -7,10 +7,12 @@
         {%- if item.favicon -%}
             <img src="{{ item.favicon }}" width="14" height="14" class="rounded" alt="">
         {%- else -%}
-            🏁 
+            <i class="bi bi-signpost-2 me-2"></i>
         {%- endif -%}
+    {%- elseif item.type == 'ffa_race' -%}
+        <img src="{{ asset_url('/public/img/ffa-favicon.png') }}" width="14" height="14" class="rounded" alt="">
     {%- else -%}
-        🎂 
+        🎂
     {%- endif -%}
 {% endmacro %}
 {% import _self as macros %}
@@ -19,11 +21,15 @@
 <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
     <i class="bi bi-calendar3 fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
     <h1 class="h2 mb-0 flex-grow-1 min-w-0">Le calendrier des adhérents</h1>
-    {% if cal.current != thisMonth %}
-    <div class="flex-shrink-0">
-        <a href="{{ page_url('calendar') }}" class="btn btn-outline-primary btn-sm" title="Revenir à aujourd'hui"><i class="bi bi-calendar-check"></i><span class="d-none d-md-inline ms-1">Aujourd'hui</span></a>
+    <div class="d-flex gap-2 flex-shrink-0">
+        <a href="{{ page_url('race-form') }}" class="btn btn-outline-success btn-sm" title="Ajouter une course"><i class="bi bi-plus-circle"></i><span class="d-none d-md-inline ms-1">Ajouter une course</span></a>
+        {% if is_admin() %}
+            <a href="{{ page_url('local-races-import') }}" class="btn btn-outline-secondary btn-sm" title="Importer les courses FFA"><i class="bi bi-cloud-download"></i><span class="d-none d-md-inline ms-1">Importer courses FFA</span></a>
+        {% endif %}
+        {% if cal.current != thisMonth %}
+            <a href="{{ page_url('calendar') }}" class="btn btn-outline-primary btn-sm" title="Revenir à aujourd'hui"><i class="bi bi-calendar-check"></i><span class="d-none d-md-inline ms-1">Aujourd'hui</span></a>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <div class="card shadow-sm">
@@ -54,13 +60,12 @@
                         <div class="calendar-day-number">{{ day.day }}</div>
                         {% if day.items is not empty %}
                             <div class="d-none d-md-block">
-                                {% for item in day.items|slice(0, 3) %}
-                                    <span class="calendar-day-chip chip-{{ item.type }}">{{ macros.item_icon(item) }} {{ item.title }}</span>
+                                {% for item in day.items|slice(0, 4) %}
+                                    <span class="calendar-day-chip chip-{{ item.type }}" data-cal-type="{{ item.type }}">{{ macros.item_icon(item) }} {{ item.title }}</span>
                                 {% endfor %}
-                                {% if day.items|length > 3 %}<span class="small text-secondary">+{{ day.items|length - 3 }}</span>{% endif %}
                             </div>
                             <div class="d-md-none text-center">
-                                {% for item in day.items|slice(0, 4) %}<span class="calendar-day-icon chip-{{ item.type }}">{{ macros.item_icon(item) }}</span>{% endfor %}
+                                {% for item in day.items|slice(0, 4) %}<span class="calendar-day-icon chip-{{ item.type }}" data-cal-type="{{ item.type }}">{{ macros.item_icon(item) }}</span>{% endfor %}
                             </div>
                         {% endif %}
                     </td>
@@ -72,12 +77,14 @@
     </div>
 </div>
 
-<div class="calendar-legend d-flex flex-wrap gap-1 gap-md-2 mt-3">
-    <span class="badge chip-event fw-normal"><img src="{{ asset_url('/public/favicon-32x32.png') }}" width="14" height="14" class="rounded me-1" alt="">Rendez-vous UA86</span>
-    <span class="badge chip-race fw-normal">🏁 Courses</span>
-    <span class="badge chip-birthday fw-normal">🎂 Anniversaires</span>
+<div class="calendar-legend d-flex flex-wrap gap-2 mt-3">
+    <span class="badge chip-event fw-normal" role="button" tabindex="0" data-cal-filter="event" onclick="toggleCalendarFilter('event')" title="Afficher/masquer"><img src="{{ asset_url('/public/favicon-32x32.png') }}" width="14" height="14" class="rounded me-1" alt="">Rendez-vous UA86</span>
+    <span class="badge chip-race fw-normal" role="button" tabindex="0" data-cal-filter="race" onclick="toggleCalendarFilter('race')" title="Afficher/masquer"><i class="bi bi-signpost-2 me-1"></i>Courses UA86</span>
+    <span class="badge chip-ffa_race fw-normal" role="button" tabindex="0" data-cal-filter="ffa_race" onclick="toggleCalendarFilter('ffa_race')" title="Afficher/masquer"><img src="{{ asset_url('/public/img/ffa-favicon.png') }}" width="14" height="14" class="rounded me-1" alt="">Courses FFA (086)</span>
+    <span class="badge chip-birthday fw-normal" role="button" tabindex="0" data-cal-filter="birthday" onclick="toggleCalendarFilter('birthday')" title="Afficher/masquer">🎂 Anniversaires</span>
 </div>
 
+<script src="{{ asset_url('public/js/calendar.js') }}"></script>
 {% endblock %}
 
 {# Une modale par jour comportant au moins un élément : liste simple, adaptée au mobile.
@@ -96,7 +103,7 @@
                     <div class="modal-body">
                         <ul class="list-group list-group-flush">
                             {% for item in day.items %}
-                            <li class="list-group-item d-flex align-items-start gap-2">
+                            <li class="list-group-item d-flex align-items-start gap-2" data-cal-type="{{ item.type }}">
                                 <span class="calendar-day-dot chip-{{ item.type }} mt-2 flex-shrink-0"></span>
                                 <div class="flex-grow-1 min-w-0">
                                     {% if item.type == 'birthday' %}
@@ -104,7 +111,7 @@
                                     {% else %}
                                         <div>
                                             {{ macros.item_icon(item) }}
-                                            {% if item.url %}<a href="{{ item.url }}" class="text-decoration-none fw-semibold">{{ item.title }}</a>{% else %}<strong>{{ item.title }}</strong>{% endif %}
+                                            {% if item.url %}<a href="{{ item.url }}" class="text-decoration-none fw-semibold"{% if item.type == 'ffa_race' %} target="_blank" rel="noopener"{% endif %}>{{ item.title }}</a>{% else %}<strong>{{ item.title }}</strong>{% endif %}
                                             {% if item.draft %}<span class="badge text-bg-secondary fw-normal ms-1">Brouillon</span>{% endif %}
                                         </div>
                                         <div class="small text-secondary">

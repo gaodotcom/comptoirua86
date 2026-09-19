@@ -48,6 +48,7 @@ function route_map(): array
 		'calendar' => 'calendrier',
 		'weekend-club-2027' => 'week-end-club-2027',
 		'weekend-club-2027-inscrits' => 'week-end-club-2027-inscrits',
+		'local-races-import' => 'import-calendrier-ffa',
 	];
 }
 

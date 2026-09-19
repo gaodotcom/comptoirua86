@@ -22,12 +22,17 @@ require __DIR__ . '/app/news.php';
 require __DIR__ . '/app/races.php';
 require __DIR__ . '/app/calendar.php';
 require __DIR__ . '/app/weekend_club_2027.php';
+require __DIR__ . '/app/local_races.php';
 require __DIR__ . '/app/uploads.php';
 require __DIR__ . '/app/helpers.php';
 require __DIR__ . '/app/twig.php';
 require __DIR__ . '/app/render.php';
 
 ensure_upload_directories();
+
+// Reconnexion automatique via le cookie "Rester connecté" si pas de session
+// active : doit s'exécuter avant le premier appel à current_user() ci-dessous.
+attempt_remember_me_login();
 
 // Détermine la page depuis l'URL propre (/entrainements) ou via le paramètre ?page=trainings
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);

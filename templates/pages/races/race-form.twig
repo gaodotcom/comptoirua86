@@ -36,7 +36,7 @@
                     </div>
                     {% endif %}
                     <button class="btn btn-success" type="submit">{{ isEditing ? 'Enregistrer' : 'Partager' }}</button>
-                    <a href="{{ page_url('races') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+                    <a href="{{ page_url('races') }}" class="btn btn-outline-secondary ms-2" onclick="if (document.referrer.indexOf(window.location.origin) === 0) { history.back(); return false; }">Annuler</a>
                 </form>
             </div>
         </div>

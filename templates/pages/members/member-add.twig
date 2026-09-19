@@ -12,7 +12,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% include 'components/member-form.twig' with {member: null} %}
                     <button class="btn btn-success mt-3" type="submit">Ajouter</button>
-                    <a href="{{ page_url('trombinoscope') }}" class="btn btn-outline-secondary mt-3 ms-2">Annuler</a>
+                    <a href="{{ page_url('trombinoscope') }}" class="btn btn-outline-secondary mt-3 ms-2" onclick="if (document.referrer.indexOf(window.location.origin) === 0) { history.back(); return false; }">Annuler</a>
                 </form>
             </div>
         </div>

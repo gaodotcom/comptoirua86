@@ -16,6 +16,7 @@
                             <li class="list-group-item px-0"><a href="#saison" class="text-decoration-none"><i class="bi bi-calendar3 me-2"></i>Adhérents par saison</a></li>
                             <li class="list-group-item px-0"><a href="#desactives" class="text-decoration-none"><i class="bi bi-person-lock me-2"></i>Adhérents désactivés</a></li>
                             <li class="list-group-item px-0"><a href="#manuel" class="text-decoration-none"><i class="bi bi-person-plus me-2"></i>Ajout manuel</a></li>
+                            <li class="list-group-item px-0"><a href="#calendrier-ffa" class="text-decoration-none"><i class="bi bi-cloud-download me-2"></i>Calendrier FFA</a></li>
                         </ul>
                     </div>
                 </div>
@@ -123,6 +124,24 @@
                         <h2 class="h5 mb-3"><i class="bi bi-person-plus me-2 text-primary"></i>Ajouter un adhérent manuellement</h2>
                         <p>Si un adhérent n'est pas passé par HelloAsso (ou pour une adhésion gratuite), on peut le créer manuellement depuis le <em>Trombinoscope</em> avec le bouton <em>Ajouter un adhérent</em>. Il faut ensuite lui ajouter une adhésion depuis sa fiche (section <em>Ajouter une adhésion</em>).</p>
                         <p>L'adhérent pourra se connecter avec son email et sa date de naissance (format jjmmaaaa) comme mot de passe par défaut. Il devra ensuite définir son propre mot de passe.</p>
+
+                        <hr class="my-4" id="calendrier-ffa">
+                        <h2 class="h5 mb-3"><i class="bi bi-cloud-download me-2 text-primary"></i>Calendrier FFA</h2>
+                        <p>En plus des courses partagées manuellement par les adhérents, le calendrier peut afficher les courses officielles "hors stade" (catégorie <em>Running</em>) publiées par la Fédération Française d'Athlétisme pour le département de la Vienne (086). Elles apparaissent avec un badge de couleur distincte, portant le picto de la FFA (<img src="{{ asset_url('/public/img/ffa-favicon.png') }}" width="14" height="14" class="rounded" alt="">), et un lien vers la fiche de la course sur athle.fr.</p>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-1"></i>Il n'existe pas d'API officielle FFA : cette fonctionnalité récupère et analyse la page publique du calendrier de la FFA. Si la FFA modifie la structure de cette page, l'import affichera une erreur explicite plutôt que d'importer des données incorrectes.
+                        </div>
+
+                        <p><strong>Déroulement :</strong></p>
+                        <ol>
+                            <li>Aller dans le menu admin <em>Importer le calendrier FFA</em> (ou le bouton du même nom sur la page <em>Calendrier</em>).</li>
+                            <li>Choisir la saison FFA (l'année en cours ou la suivante). La saison FFA couvre septembre à août : la plage de dates réelle est affichée à côté de chaque choix.</li>
+                            <li>L'aperçu s'affiche : courses trouvées, nouvelles et déjà importées. <strong>Rien n'est encore modifié</strong>.</li>
+                            <li>Cocher la case de confirmation et cliquer sur <em>Confirmer l'import</em>.</li>
+                        </ol>
+
+                        <p>Relancer l'import pour la même saison ne crée pas de doublons : chaque course est identifiée par son numéro de compétition FFA, et les courses déjà importées sont simplement mises à jour si leurs informations ont changé (date, ville...). Si une course déjà importée n'apparaît plus du tout sur le calendrier de la FFA (annulation probable), l'aperçu la signale dans une section dédiée et elle est supprimée de la base à la confirmation. Aucun import n'est automatique ou planifié : il faut relancer manuellement de temps en temps (par exemple en début de saison, ou pour rafraîchir les dates et repérer les annulations).</p>
                     </div>
                 </div>
             </div>

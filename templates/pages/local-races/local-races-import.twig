@@ -1,0 +1,185 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+                    <i class="bi bi-cloud-download fs-4 lh-1 flex-shrink-0"></i>
+                    <h1 class="h4 mb-0 flex-grow-1 min-w-0">Importer le calendrier FFA</h1>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a href="{{ page_url('calendar') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i><span class="d-none d-md-inline ms-1">Retour au calendrier</span></a>
+                    </div>
+                </div>
+
+                <p class="text-muted">
+                    Courses "Running" (hors stade) du département de la Vienne (086), récupérées sur le
+                    calendrier officiel de la FFA. Il n'existe pas d'API : cette page parse la page publique
+                    du calendrier — un changement de leur côté peut casser l'import (une erreur claire
+                    s'affichera ici plutôt qu'une importation silencieusement fausse).
+                </p>
+
+                {# Sélecteur de saison #}
+                <form method="get" action="{{ page_url('local-races-import') }}" class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label" for="season">Saison FFA</label>
+                        <select class="form-select form-select-sm" id="season" name="season" onchange="this.form.submit()">
+                            {% for opt in seasonOptions %}
+                                <option value="{{ opt.value }}" {{ opt.value == season ? 'selected' : '' }}>{{ opt.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                {% if error is not null %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Impossible de récupérer le calendrier FFA :
+                        <div class="mt-1 small">{{ error }}</div>
+                    </div>
+                {% elseif plan is not null %}
+
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-info-circle me-1"></i>Aperçu de l'import : aucune donnée n'est modifiée tant que vous ne cliquez pas sur « Confirmer l'import ».
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center h-100">
+                                <div class="fs-4 fw-bold">{{ plan.total }}</div>
+                                <div class="text-muted small">Course(s) trouvée(s)</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center h-100">
+                                <div class="fs-4 fw-bold text-danger">{{ plan.new|length }}</div>
+                                <div class="text-muted small">Nouvelle(s)</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center h-100">
+                                <div class="fs-4 fw-bold text-danger">{{ plan.existing|length }}</div>
+                                <div class="text-muted small">
+                                    {{ plan.existing_changed > 0 ? 'Déjà importée(s), dont ' ~ plan.existing_changed ~ ' à mettre à jour' : 'Déjà importée(s) (à jour)' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded p-2 text-center h-100">
+                                <div class="fs-4 fw-bold text-danger">{{ plan.removed|length }}</div>
+                                <div class="text-muted small">Retirée(s) du calendrier FFA (seront supprimées)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if plan.new is not empty %}
+                        <h2 class="h5 mb-2 text-danger"><i class="bi bi-plus-circle me-1"></i>{{ plan.new|length }} course(s) à ajouter</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Course</th>
+                                        <th>Ville</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in plan.new %}
+                                    <tr>
+                                        <td class="small">{{ r.end_date ? format_date(r.start_date) ~ ' → ' ~ format_date(r.end_date) : format_date(r.start_date) }}</td>
+                                        <td>{{ r.title }} <a href="{{ r.detail_url }}" target="_blank" rel="noopener" class="ms-1" title="Voir sur athle.fr"><i class="bi bi-box-arrow-up-right small"></i></a></td>
+                                        <td class="small">{{ r.city ?: '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.existing is not empty %}
+                        <h2 class="h5 mb-2 text-danger"><i class="bi bi-check2-circle me-1"></i>{{ plan.existing|length }} course(s) déjà importée(s){{ plan.existing_changed > 0 ? ', dont ' ~ plan.existing_changed ~ ' à mettre à jour' : ' (toutes à jour)' }}</h2>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Course</th>
+                                        <th>Ville</th>
+                                        <th>Modifications</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in plan.existing %}
+                                    <tr>
+                                        <td class="small">{{ r.end_date ? format_date(r.start_date) ~ ' → ' ~ format_date(r.end_date) : format_date(r.start_date) }}</td>
+                                        <td>{{ r.title }} <a href="{{ r.detail_url }}" target="_blank" rel="noopener" class="ms-1" title="Voir sur athle.fr"><i class="bi bi-box-arrow-up-right small"></i></a></td>
+                                        <td class="small">{{ r.city ?: '—' }}</td>
+                                        <td class="small">
+                                            {% if r.diffs is empty %}
+                                                <span class="text-muted">à jour</span>
+                                            {% else %}
+                                                {% for field, diff in r.diffs %}
+                                                    {% set fieldLabel = field == 'title' ? 'Titre' : (field == 'start_date' ? 'Début' : (field == 'end_date' ? 'Fin' : 'Ville')) %}
+                                                    {% set isDate = field in ['start_date', 'end_date'] %}
+                                                    <div><span class="text-muted">{{ fieldLabel }} :</span> {{ (isDate and diff.db) ? format_date(diff.db) : (diff.db ?: '—') }} → {{ (isDate and diff.new) ? format_date(diff.new) : (diff.new ?: '—') }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.removed is not empty %}
+                        <h2 class="h5 mb-2 text-danger"><i class="bi bi-dash-circle me-1"></i>{{ plan.removed|length }} course(s) retirée(s) du calendrier FFA (seront supprimées)</h2>
+                        <p class="text-muted small">Ces courses avaient été importées mais n'apparaissent plus sur le calendrier de la FFA (annulation probable).</p>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Course</th>
+                                        <th>Ville</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in plan.removed %}
+                                    <tr class="text-muted">
+                                        <td class="small">{{ r.end_date ? format_date(r.start_date) ~ ' → ' ~ format_date(r.end_date) : format_date(r.start_date) }}</td>
+                                        <td><s>{{ r.title }}</s></td>
+                                        <td class="small">{{ r.city ?: '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.has_changes %}
+                    <form method="post" action="{{ page_url('local-races-import') }}" id="localRacesImportForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="import">
+                        <input type="hidden" name="season" value="{{ season }}">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="confirm" id="confirmImport" value="1" required>
+                            <label class="form-check-label" for="confirmImport">
+                                J'ai vérifié les données ci-dessus et confirme l'import pour la saison {{ season }}.
+                            </label>
+                        </div>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-download me-1"></i>Confirmer l'import
+                        </button>
+                    </form>
+                    {% elseif plan.total > 0 %}
+                        <div class="alert alert-secondary">Tout est déjà à jour, rien à importer.</div>
+                    {% else %}
+                        <div class="alert alert-secondary">Aucune course trouvée pour cette saison.</div>
+                    {% endif %}
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

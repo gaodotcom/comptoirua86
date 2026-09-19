@@ -137,6 +137,21 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS remember_tokens (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    member_id INT UNSIGNED NOT NULL,
+    selector VARCHAR(24) NOT NULL,
+    validator_hash VARCHAR(64) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_remember_selector (selector),
+    KEY idx_remember_member (member_id),
+    CONSTRAINT fk_remember_member
+        FOREIGN KEY (member_id)
+        REFERENCES members(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS race_responses (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     race_id INT UNSIGNED NOT NULL,
@@ -201,6 +216,27 @@ CREATE TABLE IF NOT EXISTS weekend_2027_settings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO weekend_2027_settings (id, is_closed) VALUES (1, 0);
+
+CREATE TABLE IF NOT EXISTS local_races (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ffa_competition_id INT UNSIGNED NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    city VARCHAR(150) NULL,
+    department_code VARCHAR(3) NULL,
+    level VARCHAR(50) NULL,
+    detail_url VARCHAR(500) NULL,
+    season INT UNSIGNED NOT NULL,
+    imported_by INT UNSIGNED NULL,
+    imported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_local_races_ffa_id (ffa_competition_id),
+    CONSTRAINT fk_local_races_imported_by
+        FOREIGN KEY (imported_by)
+        REFERENCES members(id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO members (role, last_name, first_name, username, email, password_hash, date_of_birth, phone, address, postal_code, city, whatsapp_opt_in)
 SELECT 'admin', 'Association', 'Admin', 'admin', 'admin@example.org', NULL, '1970-01-01', '', '', '', '', 0
