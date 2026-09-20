@@ -11,10 +11,7 @@ declare(strict_types=1);
  */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('weekend-club-2027-inscrits');
-    }
+    require_valid_csrf('weekend-club-2027-inscrits');
 
     if (($_POST['action'] ?? '') === 'toggle_closed' && is_admin()) {
         weekend_2027_set_closed(!weekend_2027_is_closed(), (int) $user['id']);

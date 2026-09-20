@@ -13,10 +13,7 @@ declare(strict_types=1);
 $redirectTarget = safe_internal_redirect_path($_POST['redirect'] ?? $_GET['redirect'] ?? null);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée, merci de réessayer.');
-        redirect_to('change-password', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
-    }
+    require_valid_csrf('change-password', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
     $password = (string) ($_POST['password'] ?? '');
     $passwordConfirm = (string) ($_POST['password_confirm'] ?? '');
     // Les deux champs doivent correspondre avant d'essayer l'enregistrement.

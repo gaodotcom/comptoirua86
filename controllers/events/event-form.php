@@ -18,10 +18,7 @@ if ($isEditing && $editingEvent === null) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('event-form', $isEditing ? ['id' => $eventId] : []);
-    }
+    require_valid_csrf('event-form', $isEditing ? ['id' => $eventId] : []);
 
     try {
         if ($isEditing) {

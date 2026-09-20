@@ -8,10 +8,7 @@ declare(strict_types=1);
  */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && can_manage_trainings()) {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('trainings');
-    }
+    require_valid_csrf('trainings');
 
     if (($_POST['action'] ?? '') === 'delete_training') {
         try {

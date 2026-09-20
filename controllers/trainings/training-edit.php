@@ -21,10 +21,7 @@ if ($training === null) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('training-edit', ['id' => $trainingId]);
-    }
+    require_valid_csrf('training-edit', ['id' => $trainingId]);
 
     try {
         // Nouvelle image optionnelle : on garde l'ancienne si rien n'est envoyé.

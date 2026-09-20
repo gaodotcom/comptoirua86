@@ -547,6 +547,11 @@ function update_current_user_password(string $password): void
         ]
     );
 
+    // Un mot de passe volé/deviné ne doit plus permettre de rester connecté
+    // via un cookie "rester connecté" émis avant le changement.
+    app_pdo()->prepare('DELETE FROM remember_tokens WHERE member_id = :member_id')
+        ->execute(['member_id' => (int) $user['id']]);
+
     clear_must_set_password_flag();
     current_user(true);
 }
@@ -575,6 +580,11 @@ function update_user_password_by_id(int $userId, string $password): void
         'id' => $userId,
         ]
     );
+
+    // Un mot de passe volé/deviné ne doit plus permettre de rester connecté
+    // via un cookie "rester connecté" émis avant la réinitialisation.
+    app_pdo()->prepare('DELETE FROM remember_tokens WHERE member_id = :member_id')
+        ->execute(['member_id' => $userId]);
 }
 
 /**
@@ -631,6 +641,46 @@ function request_password_reset(string $email): bool
     );
 
     return $sent;
+}
+
+/**
+ * Vérifie si un "bucket" (ex: "login:jdupont", "password-reset:x@y.fr") a
+ * dépassé le nombre de tentatives autorisées sur la fenêtre de temps donnée.
+ * Protection anti brute-force sur la connexion et le mot de passe oublié.
+ *
+ * @return bool true si la limite est dépassée (la tentative doit être refusée)
+ */
+function rate_limit_exceeded(string $bucket, int $maxAttempts, int $windowSeconds): bool
+{
+    // La fenêtre est calculée côté MySQL (DATE_SUB(NOW(), ...)) plutôt qu'en
+    // PHP : l'horloge/fuseau du serveur PHP peut diverger de celle de la
+    // base, ce qui rendrait le calcul de "since" en PHP peu fiable.
+    $stmt = app_pdo()->prepare(
+        'SELECT COUNT(*) FROM rate_limit_attempts
+         WHERE bucket = :bucket AND created_at > DATE_SUB(NOW(), INTERVAL :window_seconds SECOND)'
+    );
+    $stmt->bindValue('bucket', $bucket, PDO::PARAM_STR);
+    $stmt->bindValue('window_seconds', $windowSeconds, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return (int) $stmt->fetchColumn() >= $maxAttempts;
+}
+
+/**
+ * Enregistre une tentative pour un bucket (anti brute-force). Purge
+ * occasionnellement (1 fois sur 50) les tentatives de plus d'un jour pour
+ * ne pas faire grossir la table indéfiniment.
+ *
+ * @return void
+ */
+function record_rate_limit_attempt(string $bucket): void
+{
+    app_pdo()->prepare('INSERT INTO rate_limit_attempts (bucket) VALUES (:bucket)')
+        ->execute(['bucket' => $bucket]);
+
+    if (random_int(1, 50) === 1) {
+        app_pdo()->query('DELETE FROM rate_limit_attempts WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)');
+    }
 }
 
 /**

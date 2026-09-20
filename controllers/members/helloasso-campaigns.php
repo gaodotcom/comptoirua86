@@ -21,10 +21,7 @@ if ($editId > 0) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('helloasso-campaigns');
-    }
+    require_valid_csrf('helloasso-campaigns');
 
     $action = $_POST['action'] ?? '';
 

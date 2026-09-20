@@ -73,7 +73,7 @@
                 <p class="text-secondary mb-1">{{ profileUser.address ~ ' - ' ~ profileUser.postal_code ~ ' ' ~ profileUser.city }}</p>
                 <p class="text-secondary mb-1">Email : {{ profileUser.email ~ ' - Téléphone : ' ~ format_phone(profileUser.phone) }}</p>
                 <p class="text-secondary mb-1">Date de naissance : {{ format_date(profileUser.date_of_birth ?? '') }}</p>
-                {% if not isViewingOther %}
+                {% if not isViewingOther and not is_admin() %}
                     <div class="alert alert-warning mb-0 mt-3">Pour faire modifier tes informations personnelles, tu dois contacter un membre du bureau.</div>
                 {% endif %}
             </div>

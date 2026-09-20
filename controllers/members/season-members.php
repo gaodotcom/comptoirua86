@@ -8,10 +8,7 @@ if (!can_view_detailed_members()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_admin()) {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('season-members');
-    }
+    require_valid_csrf('season-members');
 
     if (($_POST['action'] ?? '') === 'delete_member') {
         $memberId = (int) ($_POST['member_id'] ?? 0);

@@ -24,10 +24,7 @@ if ($editingMember === null) {
 $memberMemberships = get_member_memberships($memberId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('member-edit', ['id' => $memberId]);
-    }
+    require_valid_csrf('member-edit', ['id' => $memberId]);
 
     [$ok, $errors] = admin_update_member($memberId, $_POST);
     if ($ok) {

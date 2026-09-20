@@ -22,10 +22,7 @@ if ($isViewingOther) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée, merci de réessayer.');
-        redirect_to('profile', $isViewingOther ? ['id' => $viewingId] : []);
-    }
+    require_valid_csrf('profile', $isViewingOther ? ['id' => $viewingId] : []);
 
     $action = trim((string) ($_POST['action'] ?? ''));
 

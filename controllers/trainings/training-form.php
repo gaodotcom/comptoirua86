@@ -8,10 +8,7 @@ declare(strict_types=1);
  */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('training-form');
-    }
+    require_valid_csrf('training-form');
 
     try {
         // L'image est requise : save_uploaded_image renvoie null si aucun fichier n'est fourni.

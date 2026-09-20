@@ -9,10 +9,7 @@ declare(strict_types=1);
  */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('inactive-members');
-    }
+    require_valid_csrf('inactive-members');
 
     if (($_POST['action'] ?? '') === 'add_membership') {
         $memberId = (int) ($_POST['member_id'] ?? 0);

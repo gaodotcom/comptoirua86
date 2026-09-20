@@ -16,10 +16,7 @@ $registration = get_weekend_2027_registration_for_member($memberId);
 $duoLeader = get_weekend_2027_duo_leader_for_member($memberId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('weekend-club-2027');
-    }
+    require_valid_csrf('weekend-club-2027');
 
     if ($closed) {
         set_flash('danger', 'Les préinscriptions sont closes.');
@@ -54,15 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Membres pouvant être choisis comme coéquipier : adhérents d'une saison active
 // uniquement (pas les comptes génériques), hors soi-même.
 $activeMemberIds = array_diff(get_active_member_ids(), [$memberId]);
-$membersForDuoSelect = [];
-if ($activeMemberIds !== []) {
-    $placeholders = implode(',', array_fill(0, count($activeMemberIds), '?'));
-    $stmt = app_pdo()->prepare(
-        "SELECT id, first_name, last_name FROM members WHERE id IN ($placeholders) ORDER BY first_name ASC, last_name ASC"
-    );
-    $stmt->execute(array_values($activeMemberIds));
-    $membersForDuoSelect = $stmt->fetchAll();
-}
+$membersForDuoSelect = get_members_by_ids($activeMemberIds);
 
 // La course du dimanche choisie (trail2r/trail27/salta), ou '' si aucune : sert à
 // pré-cocher le bon radio (dont "Aucune") en édition, sans logique complexe côté twig.

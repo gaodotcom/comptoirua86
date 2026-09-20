@@ -23,9 +23,8 @@
             localStorage.setItem('trombiView', 'cards');
         }
         document.querySelectorAll('.trombi-item').forEach(function (item) {
-            item.classList.toggle('col-12');
-            item.classList.toggle('col-md-6');
-            item.classList.toggle('col-lg-4');
+            item.classList.toggle('col-6');
+            item.classList.toggle('col-lg-3');
         });
     };
 

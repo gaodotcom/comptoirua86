@@ -158,6 +158,13 @@ CREATE TABLE IF NOT EXISTS remember_tokens (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS rate_limit_attempts (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    bucket VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_rate_limit_bucket (bucket, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS race_responses (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     race_id INT UNSIGNED NOT NULL,

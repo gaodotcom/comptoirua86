@@ -60,6 +60,34 @@ if (session_status() === PHP_SESSION_NONE) {
 
 header('Content-Type: text/html; charset=utf-8');
 
+// En-têtes de défense en profondeur : protègent contre le clickjacking
+// (formulaires admin embarqués dans une iframe tierce), le MIME-sniffing,
+// et forcent HTTPS une fois qu'on sait que la requête l'utilise déjà.
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+if (is_https()) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+
+// Gestionnaire global d'erreurs : sans lui, une exception non interceptée
+// (ex: PDOException) affiche sa stack trace complète (chemins serveur,
+// requête SQL) aux visiteurs si display_errors est actif côté hébergeur.
+// Le détail reste journalisé côté serveur via error_log().
+set_exception_handler(function (Throwable $e): void {
+    error_log('Exception non interceptée : ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+
+    if (function_exists('twig_render')) {
+        twig_render('pages/error-500.twig', ['title' => 'Erreur']);
+    } else {
+        echo 'Une erreur est survenue. Merci de réessayer plus tard.';
+    }
+});
+
 /**
  * Retourne l'instance PDO partagée (singleton).
  * Configure le mode d'erreur en exception et le fetch associatif par défaut.
@@ -236,4 +264,22 @@ function verify_csrf_token(?string $token): bool
 
     // Comparaison en temps constant pour limiter les attaques par timing.
     return hash_equals((string) $_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Vérifie le token CSRF soumis en POST ; en cas d'échec, pose un flash
+ * "Session expirée" et redirige (sans retour) vers la page donnée.
+ * Factorise le bloc dupliqué dans la quasi-totalité des contrôleurs POST.
+ *
+ * @param string $page   Page vers laquelle rediriger en cas d'échec
+ * @param array  $params Paramètres de redirection (ex: ['id' => $id])
+ *
+ * @return void
+ */
+function require_valid_csrf(string $page, array $params = []): void
+{
+    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+        set_flash('danger', 'Session expirée.');
+        redirect_to($page, $params);
+    }
 }

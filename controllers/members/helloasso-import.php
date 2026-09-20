@@ -54,10 +54,7 @@ $error = null;
 $plan = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('helloasso-import', ['campaign_id' => $selectedCampaignId]);
-    }
+    require_valid_csrf('helloasso-import', ['campaign_id' => $selectedCampaignId]);
 
     if (($_POST['action'] ?? '') === 'import') {
         // La case de confirmation doit être cochée pour déclencher l'import.

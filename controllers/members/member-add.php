@@ -9,15 +9,10 @@ declare(strict_types=1);
  */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('member-add');
-    }
+    require_valid_csrf('member-add');
 
-    [$ok, $errors] = admin_create_member($_POST);
+    [$ok, $errors, $memberId] = admin_create_member($_POST);
     if ($ok) {
-        // Récupère l'identifiant du nouvel adhérent pour gérer la photo et l'adhésion.
-        $memberId = (int) app_pdo()->lastInsertId();
         // La photo est optionnelle : on ne l'enregistre que si un fichier a été envoyé.
         if (!empty($_FILES['photo']['name'])) {
             try {

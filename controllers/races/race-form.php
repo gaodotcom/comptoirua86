@@ -25,10 +25,7 @@ if ($isEditing && !is_admin() && (int) $editingRace['created_by'] !== (int) $use
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('race-form', $isEditing ? ['id' => $raceId] : []);
-    }
+    require_valid_csrf('race-form', $isEditing ? ['id' => $raceId] : []);
 
     try {
         if ($isEditing) {
@@ -55,9 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Liste des membres pour le sélecteur d'auteur (admin uniquement, en édition).
 $membersForSelect = [];
 if ($isEditing && is_admin()) {
-    $membersForSelect = app_pdo()->query(
-        'SELECT id, first_name, last_name FROM members WHERE deleted_at IS NULL ORDER BY first_name ASC, last_name ASC'
-    )->fetchAll();
+    $membersForSelect = get_members_for_select();
 }
 
 twig_render('pages/races/race-form.twig', [

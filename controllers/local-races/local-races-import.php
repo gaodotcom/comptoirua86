@@ -28,10 +28,7 @@ $error = null;
 $plan = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('local-races-import', ['season' => $season]);
-    }
+    require_valid_csrf('local-races-import', ['season' => $season]);
 
     if (($_POST['action'] ?? '') === 'import') {
         if (empty($_POST['confirm'])) {

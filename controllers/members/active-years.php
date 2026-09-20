@@ -10,10 +10,7 @@ declare(strict_types=1);
  */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée.');
-        redirect_to('active-years');
-    }
+    require_valid_csrf('active-years');
 
     if (($_POST['action'] ?? '') === 'save') {
         $years = $_POST['years'] ?? [];

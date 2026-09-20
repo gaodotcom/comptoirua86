@@ -52,6 +52,18 @@ if (isset($_GET['page']) && $_GET['page'] !== '') {
     $page = $_GET['page'];
 }
 
+// Les noms de route valides sont toujours en un seul segment kebab-case (voir
+// page_access_level() et page_subdir()). On rejette tout le reste (ex: "/" ou
+// caractères spéciaux) avant le contrôle d'accès : resolve_page_path() retombe
+// sinon sur controllers/<page>.php à la racine, ce qui permettrait à
+// "members/member-add" de résoudre vers le contrôleur admin
+// controllers/members/member-add.php tout en contournant page_access_level()
+// (qui ne connaît pas cette clé et retombe sur le niveau 'connected').
+if (!preg_match('/^[a-z0-9-]+$/', $page)) {
+    http_response_code(404);
+    twig_render('pages/error.twig', ['title' => 'Page introuvable']);
+}
+
 // Rend la page courante accessible globalement (utilisé par require_login pour exempter change-password/logout)
 $GLOBALS['_current_page'] = $page;
 

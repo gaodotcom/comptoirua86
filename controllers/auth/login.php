@@ -15,13 +15,18 @@ $redirectTarget = safe_internal_redirect_path($_POST['redirect'] ?? $_GET['redir
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Vérification du jeton CSRF pour protéger le formulaire de connexion.
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        set_flash('danger', 'Session expirée, merci de réessayer.');
-        redirect_to('login', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
-    }
+    require_valid_csrf('login', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
 
     $identifier = trim((string) ($_POST['identifier'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
+
+    // Anti brute-force : au-delà de 10 échecs en 15 minutes pour un même
+    // identifiant, on refuse la tentative sans même vérifier le mot de passe.
+    $loginBucket = 'login:' . strtolower($identifier);
+    if (rate_limit_exceeded($loginBucket, 10, 900)) {
+        set_flash('danger', 'Trop de tentatives. Merci de réessayer dans quelques minutes.');
+        redirect_to('login', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
+    }
 
     if (attempt_login($identifier, $password)) {
         // "Rester connecté" coché (par défaut) : pose un cookie de connexion
@@ -44,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect_to('home');
     }
 
+    record_rate_limit_attempt($loginBucket);
     set_flash('danger', 'Identifiant ou mot de passe incorrect.');
     redirect_to('login', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
 }

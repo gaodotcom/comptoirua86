@@ -27,20 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Adresse email invalide.';
             $messageType = 'warning';
         } else {
-            $sent = request_password_reset($email);
-
-            if ($sent) {
-                set_flash(
-                    'success',
-                    'Un email de réinitialisation a été envoyé à ' . e($email) . '. '
-                    . 'Veuillez vérifier votre boîte de réception.'
-                );
-                redirect_to('login');
-            } else {
-                // Pour la sécurité, on ne dit pas si l'email existe ou non.
-                set_flash('success', 'Si cet email existe dans notre base, vous recevrez un lien de réinitialisation.');
-                redirect_to('login');
+            // Anti brute-force : au-delà de 5 demandes en 1h pour un même
+            // email, on n'envoie plus d'email (évite le spam d'une boîte
+            // ciblée) mais on garde la même réponse générique.
+            $resetBucket = 'password-reset:' . strtolower($email);
+            if (!rate_limit_exceeded($resetBucket, 5, 3600)) {
+                record_rate_limit_attempt($resetBucket);
+                // On ignore volontairement le résultat : la réponse doit être
+                // identique que l'email existe ou non, pour ne pas permettre
+                // l'énumération des comptes.
+                request_password_reset($email);
             }
+            set_flash('success', 'Si cet email existe dans notre base, vous recevrez un lien de réinitialisation.');
+            redirect_to('login');
         }
     }
 }
