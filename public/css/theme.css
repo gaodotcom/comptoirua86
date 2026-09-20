@@ -86,8 +86,15 @@
 
 .page-card-header,
 .home-card-header {
-  background-color: rgba(10, 146, 180, 0.1) !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
 
+}
+
+/* Course proposée par un compte générique (ex. le compte "Ultramical86" pour
+   le WE club) plutôt que par un adhérent : fond plus marqué pour la distinguer
+   au premier coup d'oeil dans la liste des courses. */
+.page-card-header.author-generic {
+  background-color: rgba(var(--bs-primary-rgb), 0.4) !important;
 }
 /* Liens */
 a {
@@ -689,8 +696,13 @@ a > .card:hover {
   background-color: rgba(0, 0, 0, 0.015);
 }
 
-.calendar-day.is-today {
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
+/* .is-weekend:not(.out-month) a une spécificité plus forte (3 classes) que
+   .is-today seul (2 classes) et l'emportait sur un jour à la fois week-end et
+   aujourd'hui. Le second sélecteur (même spécificité que .is-weekend, déclaré
+   après) couvre ce cas pour que is-today l'emporte, avec la même opacité. */
+.calendar-day.is-today,
+.calendar-day.is-weekend.is-today {
+  background-color: rgba(var(--bs-primary-rgb), 0.15);
 }
 
 .calendar-day.is-today .calendar-day-number {

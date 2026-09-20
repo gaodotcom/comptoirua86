@@ -31,9 +31,12 @@ function create_news(array $payload): void
         throw new RuntimeException('Le contenu est obligatoire.');
     }
 
+    // Nouvelle actualité en première position de l'ordre d'affichage.
+    $nextSortOrder = (int) app_pdo()->query('SELECT COALESCE(MIN(sort_order), 1) - 1 FROM news')->fetchColumn();
+
     $stmt = app_pdo()->prepare(
-        'INSERT INTO news (title, content, published, created_by)
-         VALUES (:title, :content, :published, :created_by)'
+        'INSERT INTO news (title, content, published, sort_order, created_by)
+         VALUES (:title, :content, :published, :sort_order, :created_by)'
     );
 
     $stmt->execute(
@@ -41,6 +44,7 @@ function create_news(array $payload): void
         'title' => $title,
         'content' => $content,
         'published' => $published,
+        'sort_order' => $nextSortOrder,
         // Auteur optionnel : NULL si non renseigné.
         'created_by' => $createdBy > 0 ? $createdBy : null,
         ]
@@ -109,7 +113,55 @@ function delete_news(int $id): void
 }
 
 /**
- * Récupère les actualités publiées, triées par date de création décroissante.
+ * Déplace une actualité d'un cran vers le haut ou le bas dans l'ordre
+ * d'affichage, en échangeant son sort_order avec celui de sa voisine.
+ * Sans effet si l'actualité est déjà première (haut) ou dernière (bas).
+ *
+ * @return void
+ */
+function move_news(int $id, string $direction): void
+{
+    $pdo = app_pdo();
+
+    $stmt = $pdo->prepare('SELECT sort_order FROM news WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+    $current = $stmt->fetch();
+
+    if ($current === false) {
+        return;
+    }
+
+    $currentSortOrder = (int) $current['sort_order'];
+
+    if ($direction === 'up') {
+        $neighborSql = 'SELECT id, sort_order FROM news WHERE sort_order < :sort_order ORDER BY sort_order DESC LIMIT 1';
+    } elseif ($direction === 'down') {
+        $neighborSql = 'SELECT id, sort_order FROM news WHERE sort_order > :sort_order ORDER BY sort_order ASC LIMIT 1';
+    } else {
+        throw new RuntimeException('Direction invalide.');
+    }
+
+    $stmt = $pdo->prepare($neighborSql);
+    $stmt->execute(['sort_order' => $currentSortOrder]);
+    $neighbor = $stmt->fetch();
+
+    if ($neighbor === false) {
+        // Déjà en première (haut) ou dernière (bas) position.
+        return;
+    }
+
+    $pdo->beginTransaction();
+
+    $swap = $pdo->prepare('UPDATE news SET sort_order = :sort_order WHERE id = :id');
+    $swap->execute(['sort_order' => $neighbor['sort_order'], 'id' => $id]);
+    $swap->execute(['sort_order' => $currentSortOrder, 'id' => $neighbor['id']]);
+
+    $pdo->commit();
+}
+
+/**
+ * Récupère les actualités publiées, triées selon l'ordre d'affichage défini
+ * par les admins.
  *
  * @param int $limit Nombre maximum d'actualités (0 = toutes)
  *
@@ -117,7 +169,7 @@ function delete_news(int $id): void
  */
 function get_published_news(int $limit = 0): array
 {
-    $sql = 'SELECT * FROM news WHERE published = 1 ORDER BY created_at DESC';
+    $sql = 'SELECT * FROM news WHERE published = 1 ORDER BY sort_order ASC';
 
     if ($limit > 0) {
         $sql .= ' LIMIT :limit';
@@ -141,7 +193,7 @@ function get_all_news(): array
         'SELECT n.*, m.first_name AS author_first_name, m.last_name AS author_last_name
          FROM news n
          LEFT JOIN members m ON m.id = n.created_by
-         ORDER BY n.created_at DESC'
+         ORDER BY n.sort_order ASC'
     );
 
     return $stmt->fetchAll();

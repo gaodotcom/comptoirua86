@@ -17,7 +17,7 @@
             {% if event.published or is_admin() %}
             <div class="col-12 col-md-6 col-lg-4 anchor-target" id="evenement-{{ event.id }}">
                 <div class="card shadow-sm h-100 {{ not event.published ? 'bg-body-secondary' : '' }}">
-                    <div class="card-header page-card-header bg-white d-flex align-items-baseline align-items-md-center gap-2">
+                    <div class="card-header page-card-header d-flex align-items-baseline align-items-md-center gap-2">
                         <i class="bi bi-calendar-event fs-5 me-1 flex-shrink-0"></i>
                         <span class="fs-5 flex-grow-1">{{ event.title }}{% if not event.published %} <span class="badge text-bg-secondary fw-normal">Brouillon</span>{% endif %}</span>
                     </div>

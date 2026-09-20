@@ -39,6 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         redirect_to('news');
     }
+
+    if ($action === 'move_news_up' || $action === 'move_news_down') {
+        try {
+            move_news((int) ($_POST['news_id'] ?? 0), $action === 'move_news_up' ? 'up' : 'down');
+        } catch (Throwable $e) {
+            set_flash('danger', $e->getMessage());
+        }
+        redirect_to('news');
+    }
 }
 
 $allNews = get_all_news();

@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS news (
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     published TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
     created_by INT UNSIGNED NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -99,6 +100,11 @@ CREATE TABLE IF NOT EXISTS news (
         REFERENCES members(id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ajout a posteriori pour les bases déjà déployées avant l'introduction du
+-- tri manuel des actualités (schema.sql n'étant importé qu'une seule fois à
+-- l'installation, le CREATE TABLE ci-dessus ne suffit pas à le rajouter).
+ALTER TABLE news ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0 AFTER published;
 
 CREATE TABLE IF NOT EXISTS races (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

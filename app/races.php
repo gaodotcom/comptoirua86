@@ -334,7 +334,7 @@ function delete_race(int $id): void
 function get_all_races(): array
 {
     $stmt = app_pdo()->query(
-        'SELECT r.*, m.first_name AS author_first_name, m.last_name AS author_last_name, m.photo_path AS author_photo_path
+        'SELECT r.*, m.first_name AS author_first_name, m.last_name AS author_last_name, m.photo_path AS author_photo_path, m.generic_account AS author_generic_account
          FROM races r
          LEFT JOIN members m ON m.id = r.created_by
          ORDER BY r.start_date DESC'
