@@ -28,7 +28,7 @@
                                 <img src="{{ asset_url(training.image_path) }}" class="img-fluid rounded" alt="Image entraînement">
                             </div>
                             <div>
-                                {% if training.comment_text is not empty %}<div class="alert alert-warning mb-0"><div>{{ training.comment_text|nl2br }}</div></div>{% endif %}
+                                {% if training.comment_text is not empty %}<div class="alert alert-warning small mb-0">{{ training.comment_text|nl2br }}</div>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -58,7 +58,7 @@
                     </div>
                     <div class="card-body">
                         <img src="{{ asset_url(training.image_path) }}" class="img-fluid rounded" alt="Image entraînement">
-                        {% if loop.index <= 3 and training.comment_text is not empty %}<div class="alert alert-warning mt-3 mb-0"><div>{{ training.comment_text|nl2br }}</div></div>{% endif %}
+                        {% if loop.index <= 3 and training.comment_text is not empty %}<div class="alert alert-warning small mt-3 mb-0">{{ training.comment_text|nl2br }}</div>{% endif %}
                     </div>
                     {% if can_manage_trainings() %}
                         <div class="card-footer bg-transparent d-flex gap-1 justify-content-end">
