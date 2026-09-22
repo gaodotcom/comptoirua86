@@ -365,6 +365,14 @@ main, footer, nav {
 
 }
 
+/* Texte de bienvenue de l'accueil : passe en "small" sur mobile pour laisser
+   plus de place au reste de la page sans le tronquer. */
+@media (max-width: 767.98px) {
+    .home-welcome-text {
+        font-size: .875rem;
+    }
+}
+
 /* Members-detailed : avatar plus petit et césure des emails sur mobile */
 @media (max-width: 767.98px) {
     .members-detailed-list img,
