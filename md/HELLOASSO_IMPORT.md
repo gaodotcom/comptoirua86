@@ -136,9 +136,12 @@ renseigner l'historique des adhésions sans créer d'anciens membres.
 ### Rapprochement
 
 Les adhérents sont rapprochés avec la base existante d'abord par l'email
-de l'adhérent (customFields), puis par nom normalisé. Les adhérents déjà
-en base ne sont pas recréés : on ajoute simplement leur adhésion. La fiche
-existante n'est pas modifiée.
+de l'adhérent (customFields), puis par nom normalisé. Un match par email
+dont le nom ne correspond pas au nom de l'item HelloAsso est écarté au
+profit du nom (cas des couples partageant une seule adresse email — voir
+`md/HELLOASSO_EMAIL_PARTAGE.md`). Les adhérents déjà en base ne sont pas
+recréés : on ajoute simplement leur adhésion. La fiche existante n'est pas
+modifiée.
 
 ### Réactivation automatique
 

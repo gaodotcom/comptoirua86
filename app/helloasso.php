@@ -518,20 +518,40 @@ function helloasso_build_entry(array $it, array $memberData, int $donationCents)
  * Rapproche un adhérent HelloAsso avec les membres existants en base.
  * D'abord par email de l'adhérent, puis par nom normalisé.
  *
+ * Cas des couples partageant une seule adresse email (contrainte UNIQUE sur
+ * members.email : un seul des deux conjoints peut la détenir en base) : un
+ * match par email dont le nom de la fiche ne correspond pas au nom de
+ * l'item HelloAsso n'est pas fiable (ex: l'item de l'épouse matcherait la
+ * fiche du mari juste parce que son email y est enregistré). Dans ce cas, on
+ * lui préfère un match par nom s'il existe ; à défaut, on garde le match par
+ * email (mieux que rien pour les cas plus ambigus, ex: changement de nom).
+ *
  * @param string|null $adherentEmail Email de l'adhérent (customFields)
  * @param string      $nameKey       Nom normalisé pour la comparaison
  * @param array       $byEmail      Index des membres par email
  * @param array       $byName       Index des membres par nom normalisé
+ * @param array       $dbById       Données des membres en base, indexées par ID
  *
  * @return int|null ID du membre trouvé, ou null
  */
-function helloasso_match_member(?string $adherentEmail, string $nameKey, array $byEmail, array $byName): ?int
+function helloasso_match_member(?string $adherentEmail, string $nameKey, array $byEmail, array $byName, array $dbById): ?int
 {
-    if ($adherentEmail !== null && isset($byEmail[mb_strtolower($adherentEmail)])) {
-        return $byEmail[mb_strtolower($adherentEmail)];
+    $emailMatchId = $adherentEmail !== null ? ($byEmail[mb_strtolower($adherentEmail)] ?? null) : null;
+
+    if ($emailMatchId === null) {
+        return $byName[$nameKey] ?? null;
     }
 
-    return $byName[$nameKey] ?? null;
+    $emailMatchDbM = $dbById[$emailMatchId] ?? [];
+    $emailMatchName = helloasso_normalize_name(
+        (string) ($emailMatchDbM['first_name'] ?? '') . ' ' . (string) ($emailMatchDbM['last_name'] ?? '')
+    );
+
+    if ($emailMatchName === $nameKey) {
+        return $emailMatchId;
+    }
+
+    return $byName[$nameKey] ?? $emailMatchId;
 }
 
 /**
@@ -754,7 +774,7 @@ function helloasso_build_import_plan(string $slug, string $mode = 'complet'): ar
 
         // Rapprochement : d'abord par email de l'adhérent, puis par nom.
         $nameKey = helloasso_normalize_name($userFn . ' ' . $userLn);
-        $matchedId = helloasso_match_member($memberData['email'], $nameKey, $byEmail, $byName);
+        $matchedId = helloasso_match_member($memberData['email'], $nameKey, $byEmail, $byName, $dbById);
 
         if ($matchedId !== null) {
             $entry['member_id'] = (int) $matchedId;
@@ -843,10 +863,36 @@ function helloasso_entry_to_nullify(array $entry): array
 }
 
 /**
+ * Détermine la date à enregistrer comme created_at pour une entrée du plan :
+ * la date de la commande HelloAsso (donc la date réelle de l'adhésion),
+ * plutôt que l'instant de l'import. Retombe sur l'instant présent si
+ * HelloAsso n'a fourni aucune date exploitable.
+ *
+ * @param array $entry Entrée du plan (voir helloasso_build_entry())
+ *
+ * @return string Date au format 'Y-m-d H:i:s'
+ */
+function helloasso_entry_created_at(array $entry): string
+{
+    $date = (string) ($entry['date'] ?? '');
+
+    if ($date === '' || DateTimeImmutable::createFromFormat('Y-m-d', $date) === false) {
+        return date('Y-m-d H:i:s');
+    }
+
+    return $date . ' 00:00:00';
+}
+
+/**
  * Exécute le plan d'import : crée les nouveaux adhérents (avec toutes les
  * données issues des customFields) et ajoute l'adhésion (school_year) pour
  * tous (nouveaux + existants). Pour les existants, seule l'adhésion est
  * ajoutée/mise à jour : la fiche existante n'est pas modifiée.
+ *
+ * created_at est la date de la commande HelloAsso (date réelle de
+ * l'adhésion) ; imported_at trace l'instant où l'import a effectivement eu
+ * lieu (voir helloasso_entry_created_at()).
+ *
  * Tout se fait dans une transaction.
  *
  * @param array $plan Plan produit par helloasso_build_import_plan()
@@ -859,14 +905,20 @@ function helloasso_run_import(array $plan): array
     $schoolYear = $plan['school_year'];
 
     $insertMember = $pdo->prepare(
-        'INSERT INTO members (role, first_name, last_name, email, date_of_birth, phone, address, postal_code, city, whatsapp_opt_in)
-         VALUES (:role, :first_name, :last_name, :email, :date_of_birth, :phone, :address, :postal_code, :city, :whatsapp_opt_in)'
+        'INSERT INTO members
+             (role, first_name, last_name, email, date_of_birth, phone,
+              address, postal_code, city, whatsapp_opt_in, created_at, imported_at)
+         VALUES
+             (:role, :first_name, :last_name, :email, :date_of_birth, :phone,
+              :address, :postal_code, :city, :whatsapp_opt_in, :created_at, NOW())'
     );
 
     $upsertMembership = $pdo->prepare(
-        'INSERT INTO memberships (member_id, school_year, fee, donation)
-         VALUES (:member_id, :school_year, :fee, :donation)
-         ON DUPLICATE KEY UPDATE fee = VALUES(fee), donation = VALUES(donation)'
+        'INSERT INTO memberships (member_id, school_year, fee, donation, created_at, imported_at)
+         VALUES (:member_id, :school_year, :fee, :donation, :created_at, NOW())
+         ON DUPLICATE KEY UPDATE
+             fee = VALUES(fee), donation = VALUES(donation),
+             created_at = VALUES(created_at), imported_at = VALUES(imported_at)'
     );
 
     $created = 0;
@@ -880,6 +932,7 @@ function helloasso_run_import(array $plan): array
             try {
                 $params = helloasso_entry_to_nullify($entry);
                 $params['role'] = 'adherent';
+                $params['created_at'] = helloasso_entry_created_at($entry);
                 $insertMember->execute($params);
                 $memberId = (int) $pdo->lastInsertId();
                 // Montants HelloAsso en centimes -> euros entiers (intdiv par 100).
@@ -888,6 +941,7 @@ function helloasso_run_import(array $plan): array
                     'school_year' => $schoolYear,
                     'fee' => intdiv((int) $entry['fee'], 100),
                     'donation' => intdiv((int) $entry['donation'], 100),
+                    'created_at' => $params['created_at'],
                 ]);
                 $created++;
             } catch (Throwable $e) {
@@ -903,6 +957,7 @@ function helloasso_run_import(array $plan): array
                     'school_year' => $schoolYear,
                     'fee' => intdiv((int) $entry['fee'], 100),
                     'donation' => intdiv((int) $entry['donation'], 100),
+                    'created_at' => helloasso_entry_created_at($entry),
                 ]);
                 $updated++;
             } catch (Throwable $e) {

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS members (
     photo_path VARCHAR(255) NULL,
     deleted_at TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    imported_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_members_username (username),
     UNIQUE KEY uq_members_email (email),
@@ -33,12 +34,22 @@ CREATE TABLE IF NOT EXISTS memberships (
     fee INT NOT NULL DEFAULT 0,
     donation INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    imported_at TIMESTAMP NULL DEFAULT NULL,
     UNIQUE KEY uq_membership_school_year (member_id, school_year),
     CONSTRAINT fk_memberships_member
         FOREIGN KEY (member_id)
         REFERENCES members(id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ajout a posteriori pour les bases déjà déployées avant l'introduction du
+-- suivi de la date réelle d'adhésion HelloAsso (schema.sql n'étant importé
+-- qu'une seule fois à l'installation, les CREATE TABLE ci-dessus ne
+-- suffisent pas à les rajouter). Voir helloasso_run_import() : created_at
+-- devient la date de commande HelloAsso plutôt que la date d'import, et
+-- imported_at trace la date d'import elle-même.
+ALTER TABLE members ADD COLUMN IF NOT EXISTS imported_at TIMESTAMP NULL DEFAULT NULL AFTER created_at;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS imported_at TIMESTAMP NULL DEFAULT NULL AFTER created_at;
 
 CREATE TABLE IF NOT EXISTS active_school_years (
     school_year VARCHAR(9) PRIMARY KEY
