@@ -10,17 +10,23 @@
             list.classList.add('trombi-list', 'list-group', 'list-group-flush', 'trombi-list-top');
             btnCards.classList.remove('btn-primary', 'active');
             btnCards.classList.add('btn-outline-primary');
+            btnCards.disabled = false;
             btnList.classList.remove('btn-outline-primary');
             btnList.classList.add('btn-primary', 'active');
+            btnList.disabled = true;
             localStorage.setItem('trombiView', 'list');
         } else if (view === 'cards' && list.classList.contains('trombi-list')) {
             list.classList.remove('trombi-list', 'list-group', 'list-group-flush', 'trombi-list-top');
             list.classList.add('trombi-cards', 'row', 'g-3');
             btnList.classList.remove('btn-primary', 'active');
             btnList.classList.add('btn-outline-primary');
+            btnList.disabled = false;
             btnCards.classList.remove('btn-outline-primary');
             btnCards.classList.add('btn-primary', 'active');
+            btnCards.disabled = true;
             localStorage.setItem('trombiView', 'cards');
+        } else {
+            return;
         }
         document.querySelectorAll('.trombi-item').forEach(function (item) {
             item.classList.toggle('col-6');

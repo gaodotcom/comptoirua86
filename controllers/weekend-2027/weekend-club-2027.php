@@ -53,6 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $activeMemberIds = array_diff(get_active_member_ids(), [$memberId]);
 $membersForDuoSelect = get_members_by_ids($activeMemberIds);
 
+// Contacts référents du week-end club (Anne-Charlotte et Brice).
+$contacts = array_values(array_filter([
+    get_member_by_id(4),
+    get_member_by_id(13),
+]));
+
 // La course du dimanche choisie (trail2r/trail27/salta), ou '' si aucune : sert à
 // pré-cocher le bon radio (dont "Aucune") en édition, sans logique complexe côté twig.
 $sundaySelection = '';
@@ -69,4 +75,5 @@ twig_render('pages/weekend-2027/weekend-club-2027.twig', [
     'membersForDuoSelect' => $membersForDuoSelect,
     'sundaySelection' => $sundaySelection,
     'duoLeader' => $duoLeader,
+    'contacts' => $contacts,
 ]);

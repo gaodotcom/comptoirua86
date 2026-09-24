@@ -292,6 +292,7 @@ main, footer, nav {
 .avatar-placeholder[style*="width:24px"] { font-size: 9px; }
 .avatar-placeholder[style*="width:32px"] { font-size: 12px; }
 .avatar-placeholder[style*="width:60px"] { font-size: 22px; }
+.avatar-placeholder[style*="width:72px"] { font-size: 26px; }
 .avatar-placeholder[style*="width:120px"] { font-size: 42px; }
 /* ============================================================================
    Tables

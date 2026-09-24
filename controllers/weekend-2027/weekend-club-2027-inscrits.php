@@ -67,7 +67,7 @@ if (is_admin() && ($_GET['export'] ?? '') === 'csv') {
 
 // Sa propre préinscription (si elle existe) en premier dans la liste — pratique
 // comme rappel/confirmation de ce qu'on a soi-même choisi. Tri stable (PHP 8+) :
-// l'ordre alphabétique existant est conservé pour tous les autres.
+// l'ordre du dernier inscrit au premier inscrit est conservé pour tous les autres.
 $memberId = (int) $user['id'];
 usort($registrations, static function (array $a, array $b) use ($memberId): int {
     $aIsMe = (int) $a['member_id'] === $memberId;

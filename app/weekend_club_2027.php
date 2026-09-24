@@ -582,7 +582,7 @@ function get_all_weekend_2027_registrations(): array
          FROM weekend_2027_registrations r
          INNER JOIN members m ON m.id = r.member_id
          LEFT JOIN members p ON p.id = r.duo_partner_member_id
-         ORDER BY m.last_name ASC, m.first_name ASC'
+         ORDER BY r.created_at DESC, r.id DESC'
     );
     $registrations = $stmt->fetchAll();
 
