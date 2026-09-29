@@ -1,0 +1,62 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        <img src="{{ asset_url('public/img/vma-creps-logo.png') }}" alt="Logo CREPS de Poitiers" style="height:56px;width:auto;max-width:100%;">
+                        <img src="{{ asset_url('public/img/vma-bsn-logo.jpg') }}" alt="Logo Béruges Sport Nature" style="height:56px;width:auto;max-width:100%;">
+                        <img src="{{ asset_url('public/img/blason-ultramical86.png') }}" alt="Blason Ultramical86" style="height:56px;width:auto;max-width:100%;" class="ms-2">
+                    </div>
+                    <a href="{{ page_url('test-vma-2026-inscrits') }}" class="btn btn-outline-secondary btn-sm flex-shrink-0"><i class="bi bi-list-check"></i><span class="d-none d-md-inline ms-1">Voir les participants</span></a>
+                </div>
+                <div class="mb-3">
+                    <h1 class="h4 mb-0">Test VMA — vendredi 16 octobre 2026</h1>
+                    <p class="text-muted mb-0"><i class="bi bi-geo-alt me-1"></i>Piste du CREPS de Boivre</p>
+                </div>
+
+                <p>Les copains de <strong>Béruges Sport Nature</strong> nous propose encore cette année un <strong>test VMA</strong> le <strong>vendredi 16 octobre 2026</strong> sur la piste du CREPS de Boivre.</p>
+                <p class="mb-0">Indiquez ci-dessous si vous souhaitez y participer, cela nous permet de communiquer la liste des participants. Vous pouvez changer d'avis à tout moment.</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0">Votre participation</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {{ render_avatar(user, 72)|raw }}
+                    <div>
+                        <div class="fw-semibold">{{ user.first_name }} {{ user.last_name }}</div>
+                        <div class="text-muted small">{{ format_phone(user.phone) }}</div>
+                        <div class="text-muted small">{{ user.email }}</div>
+                    </div>
+                </div>
+
+                {% if answer is same as(true) %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-1"></i>Vous avez indiqué que vous participerez au test VMA.
+                    </div>
+                {% elseif answer is same as(false) %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Vous avez indiqué que vous ne participerez pas au test VMA.
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-question-circle me-1"></i>Vous n'êtes pour le moment pas inscrit au test VMA. Merci d'indiquer votre réponse ci-dessous.
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{{ page_url('test-vma-2026') }}" class="d-flex flex-wrap gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn {{ answer is same as(true) ? 'btn-success' : 'btn-outline-success' }}" type="submit" name="participate" value="1"><i class="bi bi-check-lg me-1"></i>Je participe</button>
+                    <button class="btn {{ answer is same as(false) ? 'btn-danger' : 'btn-outline-danger' }}" type="submit" name="participate" value="0"><i class="bi bi-x-lg me-1"></i>Je ne participe pas</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

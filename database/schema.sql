@@ -241,6 +241,18 @@ CREATE TABLE IF NOT EXISTS weekend_2027_settings (
 
 INSERT IGNORE INTO weekend_2027_settings (id, is_closed) VALUES (1, 0);
 
+CREATE TABLE IF NOT EXISTS test_vma_2026_participants (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    member_id INT UNSIGNED NOT NULL,
+    participates TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_test_vma_2026_member (member_id),
+    CONSTRAINT fk_test_vma_2026_member
+        FOREIGN KEY (member_id)
+        REFERENCES members(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS local_races (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ffa_competition_id INT UNSIGNED NOT NULL,

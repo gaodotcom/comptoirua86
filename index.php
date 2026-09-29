@@ -22,6 +22,7 @@ require __DIR__ . '/app/news.php';
 require __DIR__ . '/app/races.php';
 require __DIR__ . '/app/calendar.php';
 require __DIR__ . '/app/weekend_club_2027.php';
+require __DIR__ . '/app/test_vma_2026.php';
 require __DIR__ . '/app/local_races.php';
 require __DIR__ . '/app/uploads.php';
 require __DIR__ . '/app/helpers.php';

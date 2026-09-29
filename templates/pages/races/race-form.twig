@@ -14,11 +14,12 @@
                     <div class="row g-3">
                         <div class="col-md-6"><label class="form-label" for="start_date">Date de début</label><input class="form-control" type="date" id="start_date" name="start_date" value="{{ startDate }}" required></div>
                         <div class="col-md-6">
-                            <label class="form-label" for="end_date">Date de fin</label>
+                            <label class="form-label" for="end_date">Date de fin (facultatif)</label>
                             <div class="input-group">
                                 <input class="form-control" type="date" id="end_date" name="end_date" value="{{ endDate }}">
                                 <button class="btn btn-outline-secondary" type="button" id="end_date_clear_btn" title="Aucune date de fin"><i class="bi bi-x-lg"></i></button>
                             </div>
+                            <div class="form-text">À laisser vide si la course dure un seul jour.</div>
                         </div>
                     </div>
                     <div class="mb-3 mt-3"><label class="form-label" for="location">Lieu (facultatif)</label><input class="form-control" type="text" id="location" name="location" value="{{ location }}"></div>
