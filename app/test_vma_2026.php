@@ -65,3 +65,82 @@ function get_test_vma_2026_participants(): array
 
     return $stmt->fetchAll();
 }
+
+/**
+ * Indique si le formulaire est clos : par défaut à partir du 12/10/2026 à 0h
+ * (heure de Paris), sauf si un admin a forcé la clôture ou la réouverture.
+ *
+ * @return bool
+ */
+function test_vma_2026_is_closed(): bool
+{
+    $stmt = app_pdo()->query('SELECT manual_state FROM test_vma_2026_settings WHERE id = 1 LIMIT 1');
+    $state = $stmt->fetchColumn();
+
+    if ($state !== false && $state !== null) {
+        return (int) $state === 1;
+    }
+
+    $tz = new DateTimeZone('Europe/Paris');
+
+    return new DateTimeImmutable('now', $tz) >= new DateTimeImmutable('2026-10-12 00:00:00', $tz);
+}
+
+/**
+ * Force la clôture (true) ou la réouverture (false) du formulaire.
+ *
+ * @param bool $closed true pour clôturer, false pour rouvrir
+ *
+ * @return void
+ */
+function test_vma_2026_set_closed(bool $closed): void
+{
+    $stmt = app_pdo()->prepare(
+        'INSERT INTO test_vma_2026_settings (id, manual_state) VALUES (1, :state)
+         ON DUPLICATE KEY UPDATE manual_state = VALUES(manual_state)'
+    );
+    $stmt->execute(['state' => $closed ? 1 : 0]);
+}
+
+/** Saison d'adhésion requise pour accéder aux pages du test VMA. */
+const TEST_VMA_2026_REQUIRED_SCHOOL_YEAR = '2026-2027';
+
+/**
+ * Indique si un membre peut accéder aux pages du test VMA : adhésion de la
+ * saison 2026-2027 requise (pour inciter au renouvellement). Les membres qui ne
+ * sont pas « adhérent » (admin, coach, bureau) et les comptes génériques sont
+ * exemptés, comme pour le contrôle d'accès au site.
+ *
+ * @param array $user Membre connecté (clés 'id', 'role', 'generic_account')
+ *
+ * @return bool
+ */
+function test_vma_2026_member_allowed(array $user): bool
+{
+    if (($user['role'] ?? 'adherent') !== 'adherent' || (int) ($user['generic_account'] ?? 0) === 1) {
+        return true;
+    }
+
+    $stmt = app_pdo()->prepare('SELECT 1 FROM memberships WHERE member_id = :member_id AND school_year = :school_year LIMIT 1');
+    $stmt->execute(['member_id' => (int) $user['id'], 'school_year' => TEST_VMA_2026_REQUIRED_SCHOOL_YEAR]);
+
+    return $stmt->fetchColumn() !== false;
+}
+
+/**
+ * Bloque l'accès (page explicative) si l'adhésion 2026-2027 est absente.
+ *
+ * @param array $user Membre connecté
+ *
+ * @return void
+ */
+function require_test_vma_2026_membership(array $user): void
+{
+    if (test_vma_2026_member_allowed($user)) {
+        return;
+    }
+
+    http_response_code(403);
+    require __DIR__ . '/../controllers/test-vma-2026/test-vma-2026-adhesion.php';
+    exit;
+}

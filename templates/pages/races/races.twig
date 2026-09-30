@@ -21,7 +21,7 @@
                         <div class="card-header page-card-header{{ race.author_generic_account ? ' author-generic' : '' }} d-flex flex-wrap align-items-center">
                             <div class="d-flex align-items-center gap-2">
                                 {% set favicon = race_favicon_url(race) %}
-                                {% if favicon %}<img src="{{ favicon }}" class="rounded mt-1 flex-shrink-0" width="24" height="24" alt="">{% endif %}
+                                {% if favicon %}<img src="{{ favicon }}" class="rounded mt-1 flex-shrink-0" width="24" height="24" alt="">{% else %}<i class="bi bi-signpost-2 fs-4 flex-shrink-0" style="line-height:1.2;"></i>{% endif %}
                                 <span class="fs-4" style="line-height:1.2;">{{ race.title }}</span>
                             </div>
                             {% if canEdit %}
@@ -88,7 +88,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                                 <div>
                                     {% set favicon = race_favicon_url(race) %}
-                                    {% if favicon %}<img src="{{ favicon }}" class="rounded me-1" width="20" height="20" alt="">{% endif %}
+                                    {% if favicon %}<img src="{{ favicon }}" class="rounded me-1" width="20" height="20" alt="">{% else %}<i class="bi bi-signpost-2 me-1"></i>{% endif %}
                                     <strong>{{ race.title }}</strong>
                                     <span class="badge text-bg-light border fw-normal ms-2">{{ format_date(race.start_date) }}{% if race.end_date is not empty %} → {{ format_date(race.end_date) }}{% endif %}</span>
                                     {% if race.location is not empty %}<span class="small ms-2"><i class="bi bi-geo-alt me-1"></i>{{ race.location }}</span>{% endif %}

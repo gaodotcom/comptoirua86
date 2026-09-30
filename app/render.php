@@ -48,6 +48,7 @@ function page_subdir(string $pageName): string
         'weekend-club-2027-inscrits' => 'weekend-2027',
         'test-vma-2026' => 'test-vma-2026',
         'test-vma-2026-inscrits' => 'test-vma-2026',
+        'test-vma-2026-adhesion' => 'test-vma-2026',
         'local-races-import' => 'local-races',
     ];
 

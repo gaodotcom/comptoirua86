@@ -11,8 +11,20 @@
     </div>
 </div>
 
-<div class="alert alert-success">
-    <strong>{{ participants|length }}</strong> participant{{ participants|length > 1 ? 's' }}.
+<div class="alert {{ closed ? 'alert-warning' : 'alert-success' }} d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+    <span>
+        {% if closed %}<i class="bi bi-lock me-1"></i>Le formulaire est clos.{% else %}<i class="bi bi-unlock me-1"></i>Le formulaire est ouvert.{% endif %}
+        <strong>{{ participants|length }}</strong> participant{{ participants|length > 1 ? 's' }}.
+    </span>
+    {% if is_admin() %}
+    <form method="post" action="{{ page_url('test-vma-2026-inscrits') }}" class="m-0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="toggle_closed">
+        <button class="btn btn-sm {{ closed ? 'btn-success' : 'btn-outline-danger' }}" type="submit">
+            {{ closed ? 'Rouvrir le formulaire' : 'Clôturer le formulaire' }}
+        </button>
+    </form>
+    {% endif %}
 </div>
 
 {% if participants is empty %}

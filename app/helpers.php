@@ -223,12 +223,12 @@ function render_avatar(array $member, int $size = 96): string
 
 /**
  * URL d'affichage du favicon d'une course : le fichier enregistré localement
- * s'il existe (stocké une fois pour toutes à la création/modification de la
- * course, voir app/races.php), sinon un repli en direct vers le service
- * DuckDuckGo pour les courses pas encore ré-enregistrées depuis l'ajout de
- * cette fonctionnalité.
+ * (stocké une fois pour toutes à la création/modification de la course, voir
+ * app/races.php). Pas de repli en direct vers un service tiers : DuckDuckGo
+ * renvoie une image par défaut (une flèche) quand il ne connaît pas le site,
+ * ce qui empêchait d'afficher le picto de remplacement.
  *
- * @param array $race Ligne de la table races (clés 'favicon_path', 'website_url')
+ * @param array $race Ligne de la table races (clé 'favicon_path')
  *
  * @return string|null URL du favicon à afficher, ou null si aucune n'est disponible
  */
@@ -236,23 +236,7 @@ function race_favicon_url(array $race): ?string
 {
     $stored = (string) ($race['favicon_path'] ?? '');
 
-    if ($stored !== '') {
-        return asset_url($stored);
-    }
-
-    $websiteUrl = (string) ($race['website_url'] ?? '');
-
-    if ($websiteUrl === '') {
-        return null;
-    }
-
-    $host = parse_url($websiteUrl, PHP_URL_HOST);
-
-    if (!is_string($host) || $host === '') {
-        return null;
-    }
-
-    return 'https://icons.duckduckgo.com/ip3/' . rawurlencode($host) . '.ico';
+    return $stored !== '' ? asset_url($stored) : null;
 }
 
 /* ============================================================================

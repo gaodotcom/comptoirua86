@@ -253,6 +253,13 @@ CREATE TABLE IF NOT EXISTS test_vma_2026_participants (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS test_vma_2026_settings (
+    id TINYINT UNSIGNED PRIMARY KEY,
+    manual_state TINYINT(1) NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO test_vma_2026_settings (id, manual_state) VALUES (1, NULL);
+
 CREATE TABLE IF NOT EXISTS local_races (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ffa_competition_id INT UNSIGNED NOT NULL,

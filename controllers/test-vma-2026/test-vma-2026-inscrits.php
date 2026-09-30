@@ -4,9 +4,22 @@ declare(strict_types=1);
 
 /**
  * Liste des participants au test VMA du 16 octobre 2026.
- * Visible par tout adhérent connecté (avatar, nom, prénom), le sien en premier ; les coordonnées
- * et l'export CSV sont réservés aux admins.
+ * Visible par tout adhérent connecté (avatar, nom, prénom), le sien en premier ; les coordonnées,
+ * l'export CSV et la clôture/réouverture du formulaire sont réservés aux admins.
  */
+
+require_test_vma_2026_membership($user);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf('test-vma-2026-inscrits');
+
+    if (($_POST['action'] ?? '') === 'toggle_closed' && is_admin()) {
+        $closeNow = !test_vma_2026_is_closed();
+        test_vma_2026_set_closed($closeNow);
+        set_flash('success', $closeNow ? 'Formulaire clôturé.' : 'Formulaire rouvert.');
+        redirect_to('test-vma-2026-inscrits');
+    }
+}
 
 $participants = get_test_vma_2026_participants();
 
@@ -46,4 +59,5 @@ usort($participants, static function (array $a, array $b) use ($memberId): int {
 twig_render('pages/test-vma-2026/test-vma-2026-inscrits.twig', [
     'title' => 'Test VMA 2026 — Participants',
     'participants' => $participants,
+    'closed' => test_vma_2026_is_closed(),
 ]);

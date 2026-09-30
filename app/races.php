@@ -57,47 +57,280 @@ function validate_race_payload(array $payload): array
 }
 
 /**
- * Télécharge et enregistre localement le favicon du site d'une course, via le
- * même service (DuckDuckGo) utilisé auparavant côté client, mais une seule
- * fois côté serveur au moment de l'enregistrement plutôt qu'à chaque affichage
- * de la page (évite la dépendance à un service tiers à chaque visite).
+ * Télécharge une ressource distante (page HTML ou icône) avec des garde-fous :
+ * http(s) uniquement, timeouts courts, taille maximale, et refus des adresses
+ * privées/réservées (y compris après redirection) pour éviter qu'un lien saisi
+ * dans le formulaire ne fasse interroger le réseau interne du serveur.
  *
- * Échoue toujours silencieusement (retourne null) : un favicon indisponible
- * n'empêche jamais l'enregistrement d'une course.
+ * @param string $url      URL à télécharger
+ * @param int    $maxBytes Taille maximale acceptée du contenu
  *
- * @param string $websiteUrl URL du site de la course
- *
- * @return string|null Chemin web relatif du fichier enregistré, ou null
+ * @return array{body: string, url: string}|null Contenu et URL finale (après redirections), ou null
  */
-function fetch_race_favicon(string $websiteUrl): ?string
+function fetch_remote_resource(string $url, int $maxBytes): ?array
 {
-    $host = parse_url($websiteUrl, PHP_URL_HOST);
+    $scheme = parse_url($url, PHP_URL_SCHEME);
 
-    if (!is_string($host) || $host === '') {
+    if (!in_array($scheme, ['http', 'https'], true)) {
         return null;
     }
 
-    $ch = curl_init('https://icons.duckduckgo.com/ip3/' . rawurlencode($host) . '.ico');
+    $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+    curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+    curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+    // Certains sites refusent les requêtes sans User-Agent.
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; Comptoir-UA86 favicon fetcher)');
+    // Abandon dès que la taille reçue dépasse le maximum.
+    curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+    curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, static function ($ch, $dlTotal, $dlNow) use ($maxBytes): int {
+        return $dlNow > $maxBytes ? 1 : 0;
+    });
 
     $body = curl_exec($ch);
     $errno = curl_errno($ch);
     $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $finalUrl = (string) curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+    $ip = (string) curl_getinfo($ch, CURLINFO_PRIMARY_IP);
     curl_close($ch);
 
-    if ($errno !== 0 || $code >= 400 || !is_string($body) || $body === '') {
+    if ($errno !== 0 || $code >= 400 || !is_string($body) || $body === '' || strlen($body) > $maxBytes) {
         return null;
     }
 
-    // Garde-fou de taille : une icône ne devrait jamais peser autant.
-    if (strlen($body) > 200_000) {
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
         return null;
     }
 
+    return ['body' => $body, 'url' => $finalUrl];
+}
+
+/**
+ * Transforme une URL éventuellement relative (trouvée dans une page) en URL absolue.
+ *
+ * @param string $href    Valeur de l'attribut href
+ * @param string $pageUrl URL absolue de la page qui la contient
+ *
+ * @return string|null URL absolue, ou null si non résolvable
+ */
+function resolve_page_relative_url(string $href, string $pageUrl): ?string
+{
+    $href = trim($href);
+    $parts = parse_url($pageUrl);
+
+    if ($href === '' || $parts === false || !isset($parts['scheme'], $parts['host'])) {
+        return null;
+    }
+
+    if (preg_match('#^https?://#i', $href) === 1) {
+        return $href;
+    }
+
+    $origin = $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '');
+
+    if (str_starts_with($href, '//')) {
+        return $parts['scheme'] . ':' . $href;
+    }
+
+    if (str_starts_with($href, '/')) {
+        return $origin . $href;
+    }
+
+    if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $href) === 1) {
+        return null; // data:, javascript:, etc.
+    }
+
+    $dir = preg_replace('#/[^/]*$#', '/', $parts['path'] ?? '/');
+
+    return $origin . $dir . $href;
+}
+
+/**
+ * Liste, par ordre de préférence, les URLs d'icônes déclarées par une page
+ * (<link rel="icon"> d'abord, puis apple-touch-icon).
+ *
+ * @param string $html    Contenu HTML de la page
+ * @param string $pageUrl URL finale de la page (pour résoudre les liens relatifs)
+ *
+ * @return array<int, string>
+ */
+function extract_page_icon_urls(string $html, string $pageUrl): array
+{
+    $previous = libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    $dom->loadHTML($html);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+
+    $icons = [];
+    $touchIcons = [];
+
+    foreach ($dom->getElementsByTagName('link') as $link) {
+        $rels = preg_split('/\s+/', strtolower(trim($link->getAttribute('rel')))) ?: [];
+        $url = resolve_page_relative_url($link->getAttribute('href'), $pageUrl);
+
+        if ($url === null) {
+            continue;
+        }
+
+        if (in_array('icon', $rels, true)) {
+            $icons[] = $url;
+        } elseif (in_array('apple-touch-icon', $rels, true)) {
+            $touchIcons[] = $url;
+        }
+    }
+
+    return array_values(array_unique(array_merge($icons, $touchIcons)));
+}
+
+/**
+ * Version sans dépendance de is_blank_favicon() pour les .ico dont toutes les
+ * images sont en BMP 32 bits (cas des icônes par défaut de Wix, etc.) : vide si
+ * chaque image est quasi transparente (opacité max < 5 %) ou d'une seule couleur.
+ * Toute image d'un autre format (PNG intégré, palette...) est supposée non vide.
+ *
+ * @param string $body Contenu binaire du fichier .ico
+ *
+ * @return bool true si toutes les images de l'icône sont vides
+ */
+function is_blank_ico_32bit(string $body): bool
+{
+    if (strlen($body) < 6) {
+        return false;
+    }
+
+    $count = unpack('v', substr($body, 4, 2))[1];
+
+    if ($count < 1) {
+        return false;
+    }
+
+    for ($i = 0; $i < $count; $i++) {
+        $entry = substr($body, 6 + $i * 16, 16);
+
+        if (strlen($entry) < 16) {
+            return false;
+        }
+
+        $dir = unpack('Vsize/Voffset', substr($entry, 8, 8));
+        $header = substr($body, $dir['offset'], 40);
+
+        if (strlen($header) < 40) {
+            return false;
+        }
+
+        $bmp = unpack('VheaderSize/Vwidth/Vheight/vplanes/vbits', $header);
+
+        // Pas un BMP 32 bits (p. ex. PNG intégré) : on ne peut pas juger.
+        if ($bmp['headerSize'] !== 40 || $bmp['bits'] !== 32) {
+            return false;
+        }
+
+        $width = $bmp['width'];
+        // La hauteur d'un BMP d'icône compte l'image + le masque (x2).
+        $height = intdiv($bmp['height'], 2);
+        $pixels = substr($body, $dir['offset'] + 40, $width * $height * 4);
+
+        if ($width < 1 || $height < 1 || strlen($pixels) < $width * $height * 4) {
+            return false;
+        }
+
+        $firstColor = null;
+
+        for ($p = 0; $p < $width * $height; $p++) {
+            $alpha = ord($pixels[$p * 4 + 3]);
+
+            if ($alpha < 13) {
+                continue;
+            }
+
+            // Mélange sur fond blanc pour comparer l'apparence réelle.
+            $color = '';
+            for ($c = 0; $c < 3; $c++) {
+                $color .= chr((int) round((ord($pixels[$p * 4 + $c]) * $alpha + 255 * (255 - $alpha)) / 255));
+            }
+
+            if ($firstColor === null) {
+                $firstColor = $color;
+            } elseif ($color !== $firstColor) {
+                return false;
+            }
+        }
+
+        // Image visible d'une seule couleur ou non : seule une image tout unie est vide.
+        // (firstColor null = entièrement transparente)
+    }
+
+    return true;
+}
+
+/**
+ * Indique si une image est vide : entièrement transparente ou d'une seule
+ * couleur unie (certains sites, ou DuckDuckGo, renvoient un « favicon » vide).
+ * Sans Imagick, seuls les .ico en 32 bits sont analysés (voir is_blank_ico_32bit()) ;
+ * les autres images sont alors conservées.
+ *
+ * @param string $body Contenu binaire de l'image
+ *
+ * @return bool true si l'image est vide
+ */
+function is_blank_favicon(string $body): bool
+{
+    if (!extension_loaded('imagick')) {
+        return str_starts_with($body, "\x00\x00\x01\x00") && is_blank_ico_32bit($body);
+    }
+
+    try {
+        $frames = new Imagick();
+        // Imagick ne reconnaît pas toujours un .ico depuis un blob sans indice de format.
+        if (str_starts_with($body, "\x00\x00\x01\x00")) {
+            $frames->setFormat('ico');
+        }
+
+        $frames->readImageBlob($body);
+
+        // Une icône peut contenir plusieurs tailles : une seule non vide suffit.
+        foreach ($frames as $frame) {
+            $alpha = clone $frame;
+            $alpha->setImageAlphaChannel(Imagick::ALPHACHANNEL_EXTRACT);
+            $alphaStats = $alpha->getImageChannelStatistics();
+
+            // Transparence quasi totale (opacité maximale sous 5 %) : image invisible.
+            if ($alphaStats[Imagick::CHANNEL_RED]['maxima'] < Imagick::getQuantum() * 0.05) {
+                continue;
+            }
+
+            $flat = clone $frame;
+            $flat->setImageBackgroundColor('white');
+            $flat->setImageAlphaChannel(Imagick::ALPHACHANNEL_REMOVE);
+            $stats = $flat->getImageChannelStatistics();
+
+            foreach ([Imagick::CHANNEL_RED, Imagick::CHANNEL_GREEN, Imagick::CHANNEL_BLUE] as $channel) {
+                if ($stats[$channel]['standardDeviation'] > 0) {
+                    return false;
+                }
+            }
+        }
+    } catch (ImagickException) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Vérifie qu'un contenu est bien une image acceptée et l'enregistre localement.
+ *
+ * @param string $body Contenu binaire téléchargé
+ *
+ * @return string|null Chemin web relatif du fichier enregistré, ou null
+ */
+function store_race_favicon(string $body): ?string
+{
     // On vérifie le contenu réel du fichier plutôt que de faire confiance au service distant.
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime = (string) $finfo->buffer($body);
@@ -111,7 +344,7 @@ function fetch_race_favicon(string $websiteUrl): ?string
         'image/webp' => 'webp',
     ];
 
-    if (!isset($allowedMimes[$mime])) {
+    if (!isset($allowedMimes[$mime]) || is_blank_favicon($body)) {
         return null;
     }
 
@@ -130,6 +363,64 @@ function fetch_race_favicon(string $websiteUrl): ?string
     $webRoot = trim(app_config()['uploads_web_root'], '/');
 
     return $webRoot . '/races/' . $filename;
+}
+
+/**
+ * Télécharge et enregistre localement le favicon du site d'une course, une
+ * seule fois côté serveur au moment de l'enregistrement plutôt qu'à chaque
+ * affichage de la page (évite la dépendance à un service tiers à chaque visite).
+ *
+ * Sources essayées dans l'ordre : le service DuckDuckGo (rapide, mais qui
+ * n'a pas toutes les icônes), puis les icônes déclarées par la page du site
+ * elle-même, puis /favicon.ico.
+ *
+ * Échoue toujours silencieusement (retourne null) : un favicon indisponible
+ * n'empêche jamais l'enregistrement d'une course.
+ *
+ * @param string $websiteUrl URL du site de la course
+ *
+ * @return string|null Chemin web relatif du fichier enregistré, ou null
+ */
+function fetch_race_favicon(string $websiteUrl): ?string
+{
+    // Garde-fou de taille : une icône ne devrait jamais peser autant.
+    $maxIconBytes = 200_000;
+    $host = parse_url($websiteUrl, PHP_URL_HOST);
+
+    if (!is_string($host) || $host === '') {
+        return null;
+    }
+
+    $candidates = ['https://icons.duckduckgo.com/ip3/' . rawurlencode($host) . '.ico'];
+    $tried = [];
+
+    // Les URLs de la page ne sont cherchées que si DuckDuckGo échoue.
+    $page = null;
+    $pageLoaded = false;
+
+    while (($url = array_shift($candidates)) !== null) {
+        if (isset($tried[$url])) {
+            continue;
+        }
+        $tried[$url] = true;
+
+        $resource = fetch_remote_resource($url, $maxIconBytes);
+        $path = $resource !== null ? store_race_favicon($resource['body']) : null;
+
+        if ($path !== null) {
+            return $path;
+        }
+
+        if (!$pageLoaded && $candidates === []) {
+            $pageLoaded = true;
+            $page = fetch_remote_resource($websiteUrl, 2_000_000);
+            $pageIcons = $page !== null ? extract_page_icon_urls($page['body'], $page['url']) : [];
+            $origin = $page !== null ? resolve_page_relative_url('/favicon.ico', $page['url']) : null;
+            $candidates = array_merge($pageIcons, $origin !== null ? [$origin] : []);
+        }
+    }
+
+    return null;
 }
 
 /**

@@ -50,6 +50,7 @@ function route_map(): array
         'weekend-club-2027-inscrits' => 'week-end-club-2027-inscrits',
         'test-vma-2026' => 'test-vma-2026',
         'test-vma-2026-inscrits' => 'test-vma-2026-inscrits',
+        'test-vma-2026-adhesion' => 'test-vma-2026-adhesion',
         'local-races-import' => 'import-calendrier-ffa',
     ];
 }
