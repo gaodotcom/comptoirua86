@@ -26,7 +26,7 @@
                             <span class="me-3"><i class="bi bi-calendar-event me-1"></i>{{ format_date(event.start_date) }}{% if event.end_date is not empty %} → {{ format_date(event.end_date) }}{% endif %}</span>
                             {% if event.location is not empty %}<span class="me-3"><i class="bi bi-geo-alt me-1"></i>{{ event.location }}</span>{% endif %}
                         </div>
-                        {% if event.description is not empty %}<p class="small text-body-secondary mb-0">{{ event.description|nl2br }}</p>{% endif %}
+                        {% if event.description is not empty %}<p class="small text-body-secondary mb-0">{{ event.description|text_to_html|raw }}</p>{% endif %}
                     </div>
                     {% if is_admin() %}
                     <div class="card-footer bg-transparent d-flex gap-1 justify-content-end">
