@@ -199,6 +199,8 @@ CREATE TABLE IF NOT EXISTS weekend_2027_registrations (
     team_mode ENUM('solo', 'duo') NULL,
     duo_partner_member_id INT UNSIGNED NULL,
     bivouac TINYINT(1) NOT NULL DEFAULT 0,
+    sunday_lunch TINYINT(1) NOT NULL DEFAULT 0,
+    cancellation_insurance TINYINT(1) NOT NULL DEFAULT 0,
     shirt_size ENUM('XS', 'S', 'M', 'L', 'XL', 'XXL') NOT NULL,
     emergency_contact_name VARCHAR(200) NOT NULL,
     emergency_contact_phone VARCHAR(30) NOT NULL,
@@ -216,6 +218,12 @@ CREATE TABLE IF NOT EXISTS weekend_2027_registrations (
         REFERENCES members(id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ajout a posteriori pour les bases déjà déployées avant l'introduction de ces
+-- options (schema.sql n'étant importé qu'une seule fois à l'installation, les
+-- CREATE TABLE ci-dessus ne suffisent pas à les rajouter).
+ALTER TABLE weekend_2027_registrations ADD COLUMN IF NOT EXISTS sunday_lunch TINYINT(1) NOT NULL DEFAULT 0 AFTER bivouac;
+ALTER TABLE weekend_2027_registrations ADD COLUMN IF NOT EXISTS cancellation_insurance TINYINT(1) NOT NULL DEFAULT 0 AFTER sunday_lunch;
 
 CREATE TABLE IF NOT EXISTS weekend_2027_registration_courses (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

@@ -31,10 +31,13 @@ if (is_admin() && ($_GET['export'] ?? '') === 'csv') {
     fwrite($output, "\xEF\xBB\xBF");
 
     fputcsv($output, [
-        'Nom', 'Prénom', 'Téléphone', 'Email',
+        'Nom', 'Prénom', 'Date de naissance', 'Genre (H/F)', 'Nationalité',
+        'Email', 'Tél.', 'Adresse', 'Code postal', 'Ville', 'Pays',
+        'Code promo', 'Option annulation',
         'Courses', 'Formule', 'Coéquipier duo', 'Bivouac',
+        'Repas dimanche midi',
         'Taille maillot', 'Contact urgence - nom', 'Contact urgence - téléphone',
-        'Hébergement', 'Licence / PPS', 'Préinscrit le',
+        'Hébergement', 'Licence / PPS', 'Préinscrit le', 'Dernière mise à jour',
     ], ';');
 
     foreach ($registrations as $r) {
@@ -42,22 +45,36 @@ if (is_admin() && ($_GET['export'] ?? '') === 'csv') {
         $duoPartner = $r['duo_partner_first_name'] !== null
             ? $r['duo_partner_first_name'] . ' ' . $r['duo_partner_last_name']
             : '';
+        $dateOfBirth = $r['member_date_of_birth'] !== null
+            ? (DateTimeImmutable::createFromFormat('Y-m-d', $r['member_date_of_birth']) ?: null)
+            : null;
 
         fputcsv($output, [
             $r['member_last_name'],
             $r['member_first_name'],
-            $r['member_phone'] ?? '',
+            $dateOfBirth !== null ? $dateOfBirth->format('d/m/Y') : '',
+            $r['member_gender'] === 'M' ? 'H' : ($r['member_gender'] === 'F' ? 'F' : ''),
+            'FRA',
             $r['member_email'] ?? '',
+            $r['member_phone'] ?? '',
+            $r['member_address'] ?? '',
+            $r['member_postal_code'] ?? '',
+            $r['member_city'] ?? '',
+            'FRA',
+            'ULTRAMICAL',
+            $r['cancellation_insurance'] ? 'Oui' : 'Non',
             implode(', ', $courseLabels),
             $r['team_mode'] === 'duo' ? 'Duo' : ($r['team_mode'] === 'solo' ? 'Solo' : ''),
             $duoPartner,
             $r['bivouac'] ? 'Oui' : 'Non',
+            $r['sunday_lunch'] ? 'Oui' : 'Non',
             $r['shirt_size'],
             $r['emergency_contact_name'],
             $r['emergency_contact_phone'],
             $r['accommodation'] === 'group' ? 'Avec Ultramical86' : 'Indépendant',
             $r['license_number'],
             $r['created_at'],
+            $r['updated_at'],
         ], ';');
     }
 

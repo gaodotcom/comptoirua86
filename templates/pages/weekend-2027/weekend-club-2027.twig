@@ -19,7 +19,7 @@
                 <p>Pour ceux qui choisissent une des courses du dimanche, vous avez aussi la possibilité de vous inscrire pour la Skyrace Gorges du Tarn le samedi.</p>
                 <p>Regardez bien les infos et les horaires des différentes courses :
                     <br /><i class="bi bi-box-arrow-up-right me-1"></i><a href="https://www.lozeretrail.com/epreuves/" target="_blank" rel="noopener">Programme des courses</a>
-                    <br /><i class="bi bi-filetype-pdf me-1"></i><a href="https://www.lozeretrail.com/app/download/7526291864/Loz%C3%A8re+Trail+2026+-+R%C3%A8glement.pdf?t=1779439435" target="_blank" rel="noopener">Réglement (pdf)</a>
+                   <!-- <br /><i class="bi bi-filetype-pdf me-1"></i><a href="https://www.lozeretrail.com/app/download/7526291864/Loz%C3%A8re+Trail+2026+-+R%C3%A8glement.pdf?t=1779439435" target="_blank" rel="noopener">Réglement (pdf)</a> -->
                 </p>
                 <p class="mb-0"><i class="bi bi-globe me-1"></i><a href="https://www.lozeretrail.com/" target="_blank" rel="noopener">https://www.lozeretrail.com</a></p>
             </div>
@@ -109,13 +109,14 @@
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="bivouac" value="1" id="bivouac" {{ registration and registration.bivouac ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="bivouac">Option bivouac le soir entre les 2 jours (40€ par personne)</label>
+                                    <label class="form-check-label" for="bivouac">Option bivouac le soir entre les 2 jours (45€ par personne).
+                                        <br />Mais c'est quand même plus sympa de venir passer la soirée avec Ultramical86 ☺️</label>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="otherCourses">
-                            <p class="text-muted small mb-2">Ou une combinaison samedi et/ou dimanche :</p>
+                        <div id="otherCourses" class="pb-3 mb-3 border-bottom">
+                            <p class="text-muted small mb-2">Samedi et/ou dimanche :</p>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="courses[]" value="skyrace" id="course_skyrace" {{ registration and 'skyrace' in registration.courses ? 'checked' : '' }}>
                                 <label class="form-check-label" for="course_skyrace"><span class="fw-semibold">{{ courses.skyrace.label }}</span> — {{ courses.skyrace.description }} ({{ courses.skyrace.day }}) — {{ courses.skyrace.price }}</label>
@@ -136,8 +137,18 @@
                                 <input class="form-check-input" type="radio" name="courses[]" value="salta" id="course_salta" {{ sundaySelection == 'salta' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="course_salta"><span class="fw-semibold">{{ courses.salta.label }}</span> — {{ courses.salta.description }} ({{ courses.salta.day }}) — {{ courses.salta.price }}</label>
                             </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="sunday_lunch" value="1" id="sunday_lunch" {{ registration and registration.sunday_lunch ? 'checked' : '' }}>
+                                <label class="form-check-label" for="sunday_lunch">Repas du dimanche midi (18 €)</label>
+                                <div class="text-muted small">Pour les coureurs de la Salta Bartas, ou de la Skyrace si vous ne faites pas de course le dimanche (inclus dans le tarif pour les autres courses).</div>
+                            </div>
                         </div>
                         {% endif %}
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="cancellation_insurance" value="1" id="cancellation_insurance" {{ registration and registration.cancellation_insurance ? 'checked' : '' }}>
+                            <label class="form-check-label" for="cancellation_insurance">Assurance annulation (10% du prix de l'inscription)</label>
+                        </div>
                     </div>
                 </div>
 
