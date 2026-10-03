@@ -550,6 +550,54 @@ function send_weekend_2027_duo_cancellation_email(int $cancellingMemberId, int $
 }
 
 /**
+ * Récupère les adhérents pouvant être choisis comme coéquipier de duo pour
+ * l'Ultra Lozère : adhésion 2026-2027 à jour (pas seulement une saison active
+ * quelconque), pas de compte générique, et pas déjà préinscrit·e au week-end
+ * club (sur l'Ultra ou une autre course) — on évite ainsi de proposer un choix
+ * qui entrerait en conflit avec une préinscription existante.
+ *
+ * $keepMemberId force l'inclusion d'un adhérent même s'il ne remplit plus ces
+ * critères (ex: coéquipier déjà choisi dans une préinscription existante, qui
+ * a depuis confirmé la sienne) : sans ça, le <select> en édition n'aurait plus
+ * d'option correspondante et la sélection serait silencieusement perdue à la
+ * prochaine sauvegarde.
+ *
+ * @param int      $excludeMemberId Identifiant de l'adhérent courant, à exclure de la liste
+ * @param int|null $keepMemberId    Identifiant à conserver dans la liste même s'il est déjà préinscrit
+ *
+ * @return array Liste des adhérents (id, first_name, last_name), triée par nom
+ */
+function get_weekend_2027_duo_partner_candidates(int $excludeMemberId, ?int $keepMemberId = null): array
+{
+	$stmt = app_pdo()->prepare(
+		'SELECT m.id, m.first_name, m.last_name
+         FROM members m
+         WHERE m.deleted_at IS NULL
+           AND m.generic_account = 0
+           AND m.id != :exclude_member_id
+           AND EXISTS (
+             SELECT 1 FROM memberships ms
+             WHERE ms.member_id = m.id AND ms.school_year = :school_year
+           )
+           AND (
+             m.id = :keep_member_id
+             OR NOT EXISTS (
+               SELECT 1 FROM weekend_2027_registrations r
+               WHERE r.member_id = m.id
+             )
+           )
+         ORDER BY m.first_name ASC, m.last_name ASC'
+	);
+	$stmt->execute([
+		'exclude_member_id' => $excludeMemberId,
+		'school_year' => WEEKEND_2027_REQUIRED_SCHOOL_YEAR,
+		'keep_member_id' => $keepMemberId ?? 0,
+	]);
+
+	return $stmt->fetchAll();
+}
+
+/**
  * Recherche si un adhérent a été désigné comme coéquipier de duo par quelqu'un
  * d'autre pour l'Ultra Lozère. Si oui, son choix de course est verrouillé sur
  * ce duo : c'est le premier inscrit (le "leader") qui décide, cf.

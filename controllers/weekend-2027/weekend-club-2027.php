@@ -50,10 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Membres pouvant être choisis comme coéquipier : adhérents d'une saison active
-// uniquement (pas les comptes génériques), hors soi-même.
-$activeMemberIds = array_diff(get_active_member_ids(), [$memberId]);
-$membersForDuoSelect = get_members_by_ids($activeMemberIds);
+// Membres pouvant être choisis comme coéquipier : adhésion 2026-2027 à jour et
+// pas déjà préinscrit·e au week-end club (sauf le coéquipier déjà choisi, pour
+// ne pas le faire disparaître du <select> en édition).
+$membersForDuoSelect = get_weekend_2027_duo_partner_candidates($memberId, $registration['duo_partner_member_id'] ?? null);
 
 // Contacts référents du week-end club (Anne-Charlotte et Brice).
 $contacts = array_values(array_filter([
