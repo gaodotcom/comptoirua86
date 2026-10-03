@@ -740,29 +740,8 @@ function weekend_2027_set_closed(bool $closed, int $adminId): void
 const WEEKEND_2027_REQUIRED_SCHOOL_YEAR = '2026-2027';
 
 /**
- * Indique si un membre peut accéder aux pages du week-end club : adhésion de la
- * saison 2026-2027 requise (pour inciter au renouvellement). Les membres qui ne
- * sont pas « adhérent » (admin, coach, bureau) et les comptes génériques sont
- * exemptés, comme pour le contrôle d'accès au site.
- *
- * @param array $user Membre connecté (clés 'id', 'role', 'generic_account')
- *
- * @return bool
- */
-function weekend_2027_member_allowed(array $user): bool
-{
-    if (($user['role'] ?? 'adherent') !== 'adherent' || (int) ($user['generic_account'] ?? 0) === 1) {
-        return true;
-    }
-
-    $stmt = app_pdo()->prepare('SELECT 1 FROM memberships WHERE member_id = :member_id AND school_year = :school_year LIMIT 1');
-    $stmt->execute(['member_id' => (int) $user['id'], 'school_year' => WEEKEND_2027_REQUIRED_SCHOOL_YEAR]);
-
-    return $stmt->fetchColumn() !== false;
-}
-
-/**
- * Bloque l'accès (page explicative) si l'adhésion 2026-2027 est absente.
+ * Bloque l'accès (page « adhésion requise ») si l'adhésion 2026-2027 est absente,
+ * voir require_school_year_membership().
  *
  * @param array $user Membre connecté
  *
@@ -770,11 +749,10 @@ function weekend_2027_member_allowed(array $user): bool
  */
 function require_weekend_2027_membership(array $user): void
 {
-    if (weekend_2027_member_allowed($user)) {
-        return;
-    }
-
-    http_response_code(403);
-    require __DIR__ . '/../controllers/weekend-2027/weekend-club-2027-adhesion.php';
-    exit;
+    require_school_year_membership($user, WEEKEND_2027_REQUIRED_SCHOOL_YEAR, [
+        'title' => 'Week-end club au Lozère Trail 2027',
+        'icon' => 'bi-signpost-split',
+        'access_to' => 'au week-end club',
+        'next_step' => 'te préinscrire au week-end club',
+    ]);
 }

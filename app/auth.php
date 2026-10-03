@@ -500,6 +500,54 @@ function enforce_page_access(string $page): void
 }
 
 /**
+ * Indique si un membre a adhéré pour une saison donnée. Les membres qui ne sont
+ * pas « adhérent » (admin, coach, bureau) et les comptes génériques sont
+ * exemptés, comme pour le contrôle d'accès au site.
+ *
+ * @param array  $user       Membre connecté (clés 'id', 'role', 'generic_account')
+ * @param string $schoolYear Saison requise (ex : '2026-2027')
+ *
+ * @return bool
+ */
+function member_has_school_year_membership(array $user, string $schoolYear): bool
+{
+    if (($user['role'] ?? 'adherent') !== 'adherent' || (int) ($user['generic_account'] ?? 0) === 1) {
+        return true;
+    }
+
+    $stmt = app_pdo()->prepare('SELECT 1 FROM memberships WHERE member_id = :member_id AND school_year = :school_year LIMIT 1');
+    $stmt->execute(['member_id' => (int) $user['id'], 'school_year' => $schoolYear]);
+
+    return $stmt->fetchColumn() !== false;
+}
+
+/**
+ * Réserve une page aux adhérents d'une saison (pour inciter au renouvellement) :
+ * sans adhésion, affiche la page « adhésion requise » (403) et arrête le script.
+ *
+ * @param array                $user       Membre connecté
+ * @param string               $schoolYear Saison requise (ex : '2026-2027')
+ * @param array<string,string> $page       Textes de la page : 'title' (titre h1), 'icon' (classe
+ *                                         Bootstrap Icons), 'access_to' (ex : « au test VMA »),
+ *                                         'next_step' (ex : « t'inscrire au test VMA »)
+ *
+ * @return void
+ */
+function require_school_year_membership(array $user, string $schoolYear, array $page): void
+{
+    if (member_has_school_year_membership($user, $schoolYear)) {
+        return;
+    }
+
+    http_response_code(403);
+    twig_render('pages/membership-required.twig', [
+        'title' => $page['title'] . ' — adhésion requise',
+        'page' => $page,
+        'schoolYear' => $schoolYear,
+    ]);
+}
+
+/**
  * Indique si l'utilisateur courant doit encore définir son mot de passe.
  *
  * @return bool

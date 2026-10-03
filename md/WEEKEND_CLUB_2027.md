@@ -31,8 +31,9 @@ leur URL directe.
 Les deux pages exigent une **adhésion 2026-2027**
 (`require_weekend_2027_membership()`, constante
 `WEEKEND_2027_REQUIRED_SCHOOL_YEAR`) : sinon, réponse 403 avec la page
-explicative `/week-end-club-2027-adhesion`. Les rôles coach/bureau/admin
-et les comptes génériques sont exemptés.
+générique « adhésion requise » (`require_school_year_membership()` dans
+`app/auth.php`). Les rôles coach/bureau/admin et les comptes génériques
+sont exemptés.
 
 ## Structure technique
 
@@ -41,7 +42,6 @@ et les comptes génériques sont exemptés.
 | Logique métier (catalogue, validation, sauvegarde, export) | `app/weekend_club_2027.php` |
 | Contrôleur formulaire adhérent | `controllers/weekend-2027/weekend-club-2027.php` |
 | Contrôleur liste des inscrits (export/clôture réservés aux admins) | `controllers/weekend-2027/weekend-club-2027-inscrits.php` |
-| Contrôleur/vue accès refusé (pas d'adhésion 2026-2027) | `controllers/weekend-2027/weekend-club-2027-adhesion.php`, `templates/pages/weekend-2027/weekend-club-2027-adhesion.twig` |
 | Vue formulaire | `templates/pages/weekend-2027/weekend-club-2027.twig` |
 | Vue liste des inscrits | `templates/pages/weekend-2027/weekend-club-2027-inscrits.twig` |
 | Aides côté client (exclusivité Ultra, éligibilité repas) | `public/js/weekend-club-2027.js` |

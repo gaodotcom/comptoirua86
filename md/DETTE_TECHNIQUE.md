@@ -101,7 +101,8 @@ La piste 1 est la plus cohérente avec le reste du projet (le `try/catch`
 d'association).** Corrigés lors de cet audit : `.htaccess` en liste
 blanche, code mort, PHPCS (erreurs), limitation de connexion des comptes
 sur date de naissance, encodage des emails, `UPLOAD_MAX_SIZE`, PHPStan
-(0 erreur), config exposée à Twig, mise à jour de Twig.
+(0 erreur), config exposée à Twig, mise à jour de Twig, contrôles d'adhésion
+dupliqués (factorisés dans `require_school_year_membership()`).
 
 - **En-tête CSP** : absent. Demanderait d'inventorier tous les scripts et
   styles inline ; risque de casser des pages pour un gain limité (Twig
@@ -116,9 +117,5 @@ sur date de naissance, encodage des emails, `UPLOAD_MAX_SIZE`, PHPStan
   `app/render.php`, `page_access_level()` dans `app/auth.php`) : source
   d'oubli, mais centraliser demanderait de toucher le routage de tout le
   site.
-- **Contrôles d'adhésion dupliqués** : `weekend_2027_member_allowed()` et
-  `test_vma_2026_member_allowed()` sont quasi identiques. Pages
-  ponctuelles : à factoriser seulement si une troisième page du même
-  genre apparaît.
 - **Pages ponctuelles à archiver** (week-end club 2027, test VMA 2026) :
   supprimer pages, routes et tables une fois les événements passés.

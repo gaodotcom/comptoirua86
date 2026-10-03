@@ -22,8 +22,9 @@ d'autre information demandée, pas de paiement.
 Les deux pages ne sont pas dans le menu (URL directe uniquement) et
 exigent une **adhésion 2026-2027** (`require_test_vma_2026_membership()`,
 constante `TEST_VMA_2026_REQUIRED_SCHOOL_YEAR`) : sinon, réponse 403 avec
-la page explicative `/test-vma-2026-adhesion`. Les rôles
-coach/bureau/admin et les comptes génériques sont exemptés.
+la page générique « adhésion requise » (`require_school_year_membership()`
+dans `app/auth.php`). Les rôles coach/bureau/admin et les comptes
+génériques sont exemptés.
 
 ## Structure technique
 
@@ -32,7 +33,6 @@ coach/bureau/admin et les comptes génériques sont exemptés.
 | Logique métier (réponses, clôture, contrôle d'adhésion) | `app/test_vma_2026.php` |
 | Contrôleur formulaire | `controllers/test-vma-2026/test-vma-2026.php` |
 | Contrôleur liste des participants (export/clôture admin) | `controllers/test-vma-2026/test-vma-2026-inscrits.php` |
-| Contrôleur accès refusé (pas d'adhésion 2026-2027) | `controllers/test-vma-2026/test-vma-2026-adhesion.php` |
 | Vues | `templates/pages/test-vma-2026/*.twig` |
 | Logos (CREPS, Béruges Sport Nature + blason UA86) | `public/img/vma-creps-logo.png`, `public/img/vma-bsn-logo.jpg`, classe `.vma-logo` dans `public/css/theme.css` |
 | Schéma (nouvelles installations) | `database/schema.sql` |

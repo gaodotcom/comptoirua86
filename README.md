@@ -64,6 +64,10 @@ accès FTP uniquement).
 Une nouvelle page se déclare à trois endroits : `app/routes.php` (slug),
 `app/render.php` (sous-dossier) et `page_access_level()` dans
 `app/auth.php` si elle n'est pas réservée aux adhérents connectés.
+Pour réserver une page aux adhérents d'une saison, appeler
+`require_school_year_membership($user, '2026-2027', [...])` en tête du
+contrôleur (affiche la page générique « adhésion requise » sinon ; voir
+`require_weekend_2027_membership()` pour un exemple).
 
 ## Lancement local avec Docker
 
