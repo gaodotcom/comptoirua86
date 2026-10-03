@@ -104,9 +104,26 @@ sur date de naissance, encodage des emails, `UPLOAD_MAX_SIZE`, PHPStan
 (0 erreur), config exposée à Twig, mise à jour de Twig, contrôles d'adhésion
 dupliqués (factorisés dans `require_school_year_membership()`).
 
-- **En-tête CSP** : absent. Demanderait d'inventorier tous les scripts et
-  styles inline ; risque de casser des pages pour un gain limité (Twig
-  échappe déjà tout par défaut).
+- **En-tête CSP** : absent, **décision confirmée le 2026-10-03** (risque
+  jugé minime : Twig échappe tout par défaut, site réservé aux adhérents).
+  Inventaire fait ce jour-là :
+  - externes : Bootstrap + Bootstrap Icons (cdn.jsdelivr.net), Google
+    Fonts (fonts.googleapis.com / fonts.gstatic.com) ; Bootstrap utilise
+    aussi des images `data:` (flèches des selects, cases à cocher) ;
+  - JS inline : 3 blocs `<script>` (`sortMembers()` dans
+    trombinoscope / members-season / members-inactive) et 40 attributs
+    `onclick` / `onsubmit` / `onchange` (confirmations de suppression,
+    boutons retour `history.back()`, tri et vue du trombinoscope,
+    `member-form.twig`, `helloasso-import.twig`…) ;
+  - 18 attributs `style="..."`.
+
+  Deux options si on y revient : CSP de base sans toucher aux templates
+  (`'unsafe-inline'` gardé ; ~15 min, risque quasi nul ; bloque scripts
+  et images vers d'autres domaines, `<base>`, `form-action`), idéalement
+  d'abord en `Content-Security-Policy-Report-Only` ; ou CSP stricte, qui
+  impose de déplacer les 43 morceaux de JS inline dans `public/js/`
+  (plusieurs heures, risque de régression silencieuse sur les boutons,
+  tout retester).
 - **Récupération des favicons de courses** (`app/races.php`) : le serveur
   télécharge une URL saisie par un adhérent connecté (SSRF théorique).
   Acceptable car réservé aux adhérents ; à durcir (refus des IP privées)
