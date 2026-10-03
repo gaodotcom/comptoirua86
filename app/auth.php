@@ -728,11 +728,7 @@ function apply_password_reset(string $token, string $password): bool
         return false;
     }
 
-    try {
-        update_user_password_by_id($userId, $password);
-    } catch (Throwable $e) {
-        throw $e;
-    }
+    update_user_password_by_id($userId, $password);
 
     // Supprimer le token
     $stmt = app_pdo()->prepare('DELETE FROM password_reset_tokens WHERE member_id = :member_id');

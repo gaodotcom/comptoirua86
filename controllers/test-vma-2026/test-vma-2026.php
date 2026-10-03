@@ -13,21 +13,21 @@ $memberId = (int) $user['id'];
 $closed = test_vma_2026_is_closed();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	require_valid_csrf('test-vma-2026');
+    require_valid_csrf('test-vma-2026');
 
-	if ($closed) {
-		set_flash('danger', 'Le formulaire est clos, ta réponse ne peut plus être modifiée.');
-		redirect_to('test-vma-2026');
-	}
+    if ($closed) {
+        set_flash('danger', 'Le formulaire est clos, ta réponse ne peut plus être modifiée.');
+        redirect_to('test-vma-2026');
+    }
 
-	$participate = ($_POST['participate'] ?? '') === '1';
-	set_test_vma_2026_participation($memberId, $participate);
-	set_flash('success', $participate ? 'Ta participation au test VMA est enregistrée.' : 'C\'est noté : tu ne seras pas présent pour le test VMA.');
-	redirect_to('test-vma-2026');
+    $participate = ($_POST['participate'] ?? '') === '1';
+    set_test_vma_2026_participation($memberId, $participate);
+    set_flash('success', $participate ? 'Ta participation au test VMA est enregistrée.' : 'C\'est noté : tu ne seras pas présent pour le test VMA.');
+    redirect_to('test-vma-2026');
 }
 
 twig_render('pages/test-vma-2026/test-vma-2026.twig', [
-	'title' => 'Test VMA du 16 octobre 2026',
-	'answer' => get_test_vma_2026_answer($memberId),
-	'closed' => $closed,
+    'title' => 'Test VMA du 16 octobre 2026',
+    'answer' => get_test_vma_2026_answer($memberId),
+    'closed' => $closed,
 ]);

@@ -123,26 +123,6 @@ function get_member_memberships(int $memberId): array
 }
 
 /**
- * Récupère tous les membres avec leur historique d'adhésions.
- * Utilisé par la page de liste détaillée.
- *
- * @return array Liste des membres enrichis avec la clé memberships
- */
-function get_detailed_members_with_history(): array
-{
-    $stmt = app_pdo()->query(
-        'SELECT id, role, gender, first_name, last_name, username, address, postal_code,
-                city, date_of_birth, phone, email, whatsapp_opt_in, photo_path, is_bureau,
-                is_coach, bureau_role, generic_account
-         FROM members
-         WHERE deleted_at IS NULL
-         ORDER BY generic_account ASC, first_name ASC, last_name ASC'
-    );
-
-    return attach_membership_history($stmt->fetchAll());
-}
-
-/**
  * Récupère tous les membres ayant une adhésion pour une année scolaire donnée,
  * avec leur historique complet d'adhésions. Inclut les membres actifs et inactifs.
  *
@@ -226,29 +206,6 @@ function get_members_for_select(): array
     $stmt = app_pdo()->query(
         'SELECT id, first_name, last_name FROM members WHERE deleted_at IS NULL ORDER BY first_name ASC, last_name ASC'
     );
-
-    return $stmt->fetchAll();
-}
-
-/**
- * Récupère des membres par leurs IDs (id + nom uniquement), triés par nom.
- * Utilisé pour les sélecteurs de coéquipier (ex: week-end club).
- *
- * @param array $memberIds IDs des membres à récupérer
- *
- * @return array Liste des membres (id, first_name, last_name)
- */
-function get_members_by_ids(array $memberIds): array
-{
-    if ($memberIds === []) {
-        return [];
-    }
-
-    $placeholders = implode(',', array_fill(0, count($memberIds), '?'));
-    $stmt = app_pdo()->prepare(
-        "SELECT id, first_name, last_name FROM members WHERE id IN ($placeholders) ORDER BY first_name ASC, last_name ASC"
-    );
-    $stmt->execute(array_values($memberIds));
 
     return $stmt->fetchAll();
 }
