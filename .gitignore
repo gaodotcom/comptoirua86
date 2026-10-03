@@ -6,5 +6,5 @@ public/uploads/*
 .vibe/
 sonar-scanner/
 
-# Paquets de déploiement FTP générés (skill deploiement-ftp)
+# vendor/ de prod généré pour l'envoi FTP (skill vendor-prod)
 deploy/
