@@ -1,111 +1,125 @@
-# Espace Adhérents (Association de course)
+# Le Comptoir — Espace adhérents Ultramical86
 
-Application web simple en PHP pur + MariaDB, adaptee a un hebergement mutualise.
+Application web en PHP + MariaDB, adaptée à un hébergement mutualisé (Ionos,
+accès FTP uniquement).
 
-## Pourquoi ce choix technique
+## Choix techniques
 
-- PHP pur: tres compatible avec les serveurs mutualises et simple a maintenir.
-- MariaDB: robuste et largement disponible en mutualise.
-- Bootstrap: interface responsive rapidement exploitable.
-- Docker en local: environnement de dev stable sans impacter l hebergement final.
+- PHP 8.3 procédural (pas de framework) : compatible mutualisé, simple à maintenir.
+- Twig 3 pour les templates (seule dépendance de prod, via Composer).
+- MariaDB, requêtes préparées PDO.
+- Bootstrap 5 + Bootstrap Icons pour l'interface responsive.
+- Docker en local : environnement de dev stable sans impacter l'hébergement.
 
-## Fonctionnalites implantees
+## Fonctionnalités
 
-- Authentification:
-  - identifiant = nom d utilisateur ou email
-  - mot de passe = soit mot de passe personnel, soit date de naissance (si aucun mot de passe defini)
-  - obligation de definir un mot de passe personnel apres connexion via date de naissance
-  - recuperation de mot de passe oublie par email (lien valide 30 minutes)
-  - gestion du nom d utilisateur depuis la page profil (optionnel, 3-30 caracteres)
-- Roles:
-  - adherent
-  - coach
-  - bureau
-  - admin
-- Adherent:
-  - page d accueil avec les 3 dernieres semaines d entrainement
-  - lien vers trombinoscope
-  - 10 prochains anniversaires
-  - calendrier mensuel (evenements UA86, courses, anniversaires), avec detail du jour en modale
-  - liens Facebook / Instagram
-  - trombinoscope (photo, nom, prenom)
-  - gestion de sa propre photo
-- Coach:
-  - publication hebdomadaire d entrainement (titre, date, texte, image, commentaire optionnel)
-- Bureau:
-  - vue detaillee des adherents
-  - historique des adhesions (annee scolaire, tarif, don)
-- Administrateur:
-  - ajout / modification / suppression d adherents
-  - ajout / mise a jour d adhesions annuelles
+- **Authentification**
+  - identifiant = nom d'utilisateur ou email
+  - mot de passe = mot de passe personnel, ou date de naissance si aucun
+    mot de passe n'est encore défini (adhérents jamais connectés) ;
+    création d'un mot de passe personnel obligatoire à la première connexion
+  - mot de passe oublié par email (lien valable 30 minutes)
+  - connexion permanente (« se souvenir de moi »)
+  - limitation des tentatives : 10 / 15 min, 5 / heure pour les comptes
+    encore sur la date de naissance
+- **Rôles** : adhérent, coach, bureau, admin.
+- **Adhérent**
+  - accueil : dernier entraînement, prochains anniversaires, 3 prochains
+    événements, actualités, prochaines courses
+  - calendrier mensuel (événements UA86, courses, anniversaires)
+  - trombinoscope, gestion de son profil et de sa photo
+  - courses partagées (inscriptions entre adhérents), agenda UA86, actualités
+- **Coach** : publication des entraînements.
+- **Bureau** : vue détaillée des adhérents, historique des adhésions.
+- **Admin**
+  - gestion des adhérents et des adhésions annuelles, saisons actives,
+    adhérents désactivés
+  - import des adhésions HelloAsso
+  - import du calendrier FFA (courses de la Vienne)
+  - page d'aide (`/aide`)
+- **Pages ponctuelles** (hors menu, réservées aux adhérents de la saison
+  2026-2027) : préinscriptions au week-end club Lozère Trail 2027
+  (voir [md/WEEKEND_CLUB_2027.md](md/WEEKEND_CLUB_2027.md)) et test VMA 2026
+  (voir [md/TEST_VMA_2026.md](md/TEST_VMA_2026.md)).
 
 ## Structure
 
-- `index.php`: routeur principal
-- `app/bootstrap.php`: config, PDO, session, CSRF, flash, helpers globaux
-- `app/auth.php`: authentification, session, permissions, mot de passe, reset tokens
-- `app/email.php`: envoi d emails (oubli de mot de passe)
-- `app/members.php`: CRUD adhérents, trombinoscope, anniversaires, adhésions
-- `app/trainings.php`: CRUD entraînements
-- `app/events.php`: CRUD événements
-- `app/calendar.php`: agrégation calendrier (événements, courses, anniversaires)
-- `app/news.php`: CRUD actualités
-- `app/uploads.php`: upload d'images, dossiers
-- `app/helpers.php`: URL, dates, avatar, formatage
-- `app/render.php`: rendu des pages et composants
-- `app/config.php`: configuration application + BDD
-- `database/schema.sql`: création tables + compte admin initial
-- `docker-compose.yml`: stack locale
-- `docker/php/Dockerfile`: image PHP/Apache locale
+- `index.php` : contrôleur frontal (toutes les URLs passent par lui)
+- `app/routes.php` : correspondance route ↔ slug d'URL
+- `app/render.php` : sous-dossier de contrôleur/template de chaque page
+- `app/auth.php` : authentification, sessions, permissions
+  (`page_access_level()`), mots de passe, limitation des tentatives
+- `app/bootstrap.php` : config, PDO, session, CSRF, messages flash
+- `app/twig.php` : environnement Twig et fonctions exposées aux templates
+- `app/*.php` : logique métier par domaine (`members`, `trainings`,
+  `events`, `news`, `races`, `local_races`, `calendar`, `helloasso`,
+  `email`, `uploads`, `helpers`, `weekend_club_2027`, `test_vma_2026`…)
+- `controllers/<domaine>/<page>.php` : un contrôleur par page
+- `templates/` : `layout.twig`, `pages/<domaine>/`, `components/`
+- `public/` : CSS, JS, images, `uploads/` (fichiers des adhérents)
+- `database/schema.sql` : création complète de la base + compte admin initial
+- `database/migrations/` : scripts SQL datés pour les bases déjà déployées
+- `md/` : documentation fonctionnelle et dette technique
+
+Une nouvelle page se déclare à trois endroits : `app/routes.php` (slug),
+`app/render.php` (sous-dossier) et `page_access_level()` dans
+`app/auth.php` si elle n'est pas réservée aux adhérents connectés.
 
 ## Lancement local avec Docker
 
-1. Copier la configuration:
+1. Copier la configuration : `cp .env.example .env`
+2. Lancer les conteneurs : `docker compose up --build`
+3. Ouvrir :
+   - application : http://localhost:8080
+   - phpMyAdmin : http://localhost:8081
+   - MailHog (emails de test) : http://localhost:8082
+   - MariaDB depuis l'hôte : port 3311
 
-   cp .env.example .env
+### Qualité du code
 
-2. Lancer les conteneurs:
-
-   docker compose up --build
-
-3. Ouvrir:
-
-- Application: http://localhost:8080
-- phpMyAdmin: http://localhost:8081
-- MailHog (tests email): http://localhost:8082
+```bash
+docker exec comptoir-app-1 php vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+docker exec comptoir-app-1 php vendor/bin/phpcs
+docker exec comptoir-app-1 php vendor/bin/phpcbf
+```
 
 ## Compte administrateur initial
 
-Le schema cree automatiquement:
+Le schéma crée :
 
-- identifiant: `admin`
-- email: `admin@example.org`
-- date de naissance: `1970-01-01`
+- identifiant : `admin`
+- email : `admin@example.org`
+- date de naissance : `1970-01-01`
 
-Comme aucun mot de passe n est defini au depart, vous pouvez vous connecter avec la date de naissance en mot de passe:
+Aucun mot de passe n'étant défini, se connecter avec la date de naissance
+(`01011970` ou `1970-01-01`) : l'application demande ensuite un mot de
+passe personnel.
 
-- `01011970` (ou `1970-01-01`)
+## Déploiement (mutualisé, FTP)
 
-Puis l application forcera la creation d un mot de passe personnel.
+- Nouvelle installation : importer `database/schema.sql`. Base existante :
+  passer dans phpMyAdmin les fichiers de `database/migrations/` pas encore
+  appliqués (ils sont idempotents).
+- Envoyer les fichiers modifiés par FTP.
+- `vendor/` : **ne pas envoyer le vendor local** (il contient PHPStan et
+  PHPCS, et son autoloader charge un fichier de PHPStan : le site plante
+  s'il manque). Quand `composer.json`/`composer.lock` changent, générer un
+  vendor de prod sans les outils de dev dans `deploy/vendor-prod` (skill
+  Claude `vendor-prod`, ou `composer install --no-dev --optimize-autoloader`).
+- Configurer `.env` sur le serveur et vérifier les droits en écriture sur
+  `public/uploads/`.
 
-## Deploiement mutualise
+## Sécurité
 
-- Importer `database/schema.sql` dans votre base MariaDB.
-- Copier les fichiers de l application sur l hebergement.
-- Adapter les variables DB dans `.env` (ou directement via variables serveur).
-- Verifier les droits en ecriture sur `public/uploads/`.
-
-## Points de securite deja inclus
-
-- Hash de mot de passe (`password_hash` / `password_verify`)
-- Verification CSRF sur formulaires sensibles
-- Controle strict des roles
-- Validation des uploads image (type + taille)
-- Requetes SQL preparees (PDO)
-
-## Evolutions conseillees (prochaine iteration)
-
-- pagination + recherche adherents
-- journal d activite admin
-- sauvegarde automatique de la BDD
-- compression/redimensionnement des photos
+- `.htaccess` racine en liste blanche : seuls `index.php`, `public/` et
+  quelques fichiers publics sont servis ; `.env`, `.git`, `app/`,
+  `vendor/`, `database/`, `deploy/`… sont inaccessibles.
+- Mots de passe hachés (`password_hash` / `password_verify`).
+- Jeton CSRF sur tous les formulaires.
+- Contrôle des rôles côté serveur (`page_access_level()` + vérifications
+  dans les contrôleurs).
+- Limitation des tentatives (connexion, mot de passe oublié).
+- Validation des uploads d'images (type + taille, 5 Mo max).
+- Requêtes SQL préparées (PDO), échappement automatique Twig.
+- Identifiants (base, SMTP, HelloAsso) non exposés aux templates.
+- Emails encodés en base64 (UTF-8, pas de corruption des lignes longues).

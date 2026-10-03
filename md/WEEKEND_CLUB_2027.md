@@ -28,6 +28,12 @@ Ces deux pages ne sont **volontairement pas présentes dans le menu**
 (`templates/components/navbar.twig`) : elles ne sont accessibles que par
 leur URL directe.
 
+Les deux pages exigent une **adhésion 2026-2027**
+(`require_weekend_2027_membership()`, constante
+`WEEKEND_2027_REQUIRED_SCHOOL_YEAR`) : sinon, réponse 403 avec la page
+explicative `/week-end-club-2027-adhesion`. Les rôles coach/bureau/admin
+et les comptes génériques sont exemptés.
+
 ## Structure technique
 
 | Rôle | Fichier |
@@ -35,18 +41,21 @@ leur URL directe.
 | Logique métier (catalogue, validation, sauvegarde, export) | `app/weekend_club_2027.php` |
 | Contrôleur formulaire adhérent | `controllers/weekend-2027/weekend-club-2027.php` |
 | Contrôleur liste des inscrits (export/clôture réservés aux admins) | `controllers/weekend-2027/weekend-club-2027-inscrits.php` |
+| Contrôleur/vue accès refusé (pas d'adhésion 2026-2027) | `controllers/weekend-2027/weekend-club-2027-adhesion.php`, `templates/pages/weekend-2027/weekend-club-2027-adhesion.twig` |
 | Vue formulaire | `templates/pages/weekend-2027/weekend-club-2027.twig` |
 | Vue liste des inscrits | `templates/pages/weekend-2027/weekend-club-2027-inscrits.twig` |
+| Aides côté client (exclusivité Ultra, éligibilité repas) | `public/js/weekend-club-2027.js` |
 | Schéma des tables (nouvelles installations) | `database/schema.sql` |
-| Migration (bases déjà déployées) | `database/migrations/2026-09-18_weekend_club_2027.sql` |
+| Migrations (bases déjà déployées) | `database/migrations/2026-09-18_weekend_club_2027.sql`, `2026-10-01_weekend_2027_options.sql`, `2026-10-02_weekend_2027_accommodation_group_and_family.sql` |
 | Logo de l'épreuve | `public/img/weekend-club-2027-logo.png` |
 
 ### Tables
 
 - `weekend_2027_registrations` : une ligne par adhérent (clé unique sur
   `member_id`), avec toutes les infos du formulaire (formule solo/duo,
-  coéquipier, bivouac, taille de maillot, contact d'urgence, hébergement,
-  numéro de licence/PPS).
+  coéquipier, bivouac, repas du dimanche midi, assurance annulation,
+  taille de maillot, contact d'urgence, hébergement, numéro de
+  licence/PPS).
 - `weekend_2027_registration_courses` : table de jointure — une ligne par
   course choisie (un adhérent peut avoir plusieurs courses, ex : Skyrace +
   une course du dimanche).
@@ -68,8 +77,11 @@ Défini en dur dans `weekend_2027_courses()` (`app/weekend_club_2027.php`),
 - Une seule course du **dimanche** peut être choisie (2 Rivières, Lozère
   Trail ou Salta Bartas), éventuellement combinée avec la **Skyrace** du
   samedi.
-- Taille de maillot, contact d'urgence complet, choix d'hébergement et
-  numéro de licence/PPS sont toujours obligatoires.
+- Taille de maillot et choix d'hébergement sont obligatoires (contact
+  d'urgence et licence/PPS facultatifs depuis le 2026-09-18).
+- **Repas du dimanche midi** (12 €) : seulement pour le Salta Bartas, ou
+  la Skyrace sans course le dimanche (inclus dans le tarif des autres
+  courses). Refusé côté serveur sinon.
 
 ## Administration
 
@@ -78,9 +90,13 @@ Défini en dur dans `weekend_2027_courses()` (`app/weekend_club_2027.php`),
   pour tout le monde ; les infos pratiques (formule solo/duo, bivouac,
   taille de maillot, hébergement) ne s'affichent que pour les admins.
 - **Export CSV** (bouton « Exporter en CSV ») : une ligne par adhérent,
-  avec ses coordonnées (nom, prénom, téléphone, email) **et** tous les
-  champs du formulaire, même ceux non applicables (colonnes toujours
-  présentes). Pas de dépendance XLSX ajoutée au projet — le fichier CSV
+  avec ses coordonnées **et** tous les champs du formulaire, même ceux
+  non applicables (colonnes toujours présentes). Colonnes dans l'ordre
+  attendu pour l'inscription groupée chez l'organisateur : Nom, Prénom,
+  Date de naissance, Genre (H/F), Nationalité (FRA), Email, Tél.,
+  Adresse, Code postal, Ville, Pays (FRA), Code promo (ULTRAMICAL),
+  Option annulation, puis le reste (courses, formule, repas,
+  hébergement…, « Préinscrit le » et « Dernière mise à jour »). Pas de dépendance XLSX ajoutée au projet — le fichier CSV
   s'ouvre directement dans Excel (BOM UTF-8 inclus pour les accents).
 - **Clôture manuelle** : un admin peut clôturer les préinscriptions à
   tout moment (bouton bascule). Une fois closes, le formulaire devient en
@@ -265,5 +281,27 @@ Défini en dur dans `weekend_2027_courses()` (`app/weekend_club_2027.php`),
   préinscription ». Avant, le bouton restait affiché mais désactivé
   (juste grisé par l'attribut `disabled` du `<fieldset>` englobant),
   ce qui prêtait à confusion.
+
+- **2026-10-01** : deux options dans la card « Votre course » : case
+  « Repas du dimanche midi (12 €) » (`sunday_lunch`, éligibilité gérée
+  côté client par `updateSundayLunchState()` et vérifiée côté serveur)
+  et, en fin de card, « Assurance annulation (10 % du prix de
+  l'inscription) » (`cancellation_insurance`). Migration
+  `2026-10-01_weekend_2027_options.sql`. Les deux options figurent dans
+  l'email récapitulatif et le CSV. Contacts organisateurs (avatar,
+  prénom, email cliquable — adhérents 4 et 13) dans un `card-footer`.
+- **2026-10-02** : export CSV réordonné pour l'organisateur (voir
+  « Administration ») et ajout de la colonne « Dernière mise à jour »
+  (`updated_at`). Nouvelle option d'hébergement « Avec le groupe et ma
+  famille » (`group_and_family`), migration
+  `2026-10-02_weekend_2027_accommodation_group_and_family.sql` ;
+  libellés centralisés dans `weekend_2027_accommodation_label()`.
+- **2026-10-03** : accès réservé aux adhérents 2026-2027 (voir
+  « Accès »). La liste des coéquipiers possibles pour le duo ne propose
+  plus que les adhérents 2026-2027 pas encore préinscrits
+  (`get_weekend_2027_duo_partner_candidates()`, le coéquipier déjà
+  choisi reste dans la liste). La validation serveur garde
+  volontairement l'ancienne règle (saison active) : choix assumé, peu
+  d'adhérents concernés.
 
 _À compléter au fil des prochains ajustements sur cette page._

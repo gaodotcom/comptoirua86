@@ -12,7 +12,7 @@ declare(strict_types=1);
 // Dernier entraînement publié (le plus récent seulement).
 $trainings = get_last_trainings(1);
 $lastTraining = !empty($trainings) ? $trainings[0] : null;
-// 8 prochains anniversaires d'adhérents.
+// 5 prochains anniversaires d'adhérents.
 $birthdays = get_next_birthdays(5);
 
 $today = (new DateTimeImmutable('today'))->format('Y-m-d');
