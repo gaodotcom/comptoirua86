@@ -1,18 +1,22 @@
 Options -Indexes
 
+# La racine web est la racine du projet : seuls index.php, public/ et
+# quelques fichiers statiques doivent être servis directement. Tout le reste
+# (.env, .git, database/, templates/, controllers/, vendor/...) passe par le
+# routeur, qui répond 404.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
-    
-    # Exclut les fichiers et dossiers existants
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    
-    # Exclut explicitement les fichiers statiques et dossiers publics
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteCond %{REQUEST_URI} !^/favicon\.ico$
-    RewriteCond %{REQUEST_URI} !^/robots\.txt$
-    
-    # Redirige tout le reste vers index.php
+
+    RewriteRule ^(index\.php|favicon\.ico|robots\.txt|logo-blanc\.png)$ - [L]
+    RewriteRule ^(public|\.well-known)/ - [L]
+
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
+
+# Filet de sécurité si mod_rewrite est indisponible : bloque les fichiers et
+# dossiers cachés (.env, .git...) et les fichiers de configuration/données.
+RedirectMatch 404 "/\.(?!well-known/)"
+<FilesMatch "\.(env|sql|md|lock|json|ya?ml|neon|xml|properties|twig|sh|ini|log)$">
+    Require all denied
+</FilesMatch>
