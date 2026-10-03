@@ -23,5 +23,10 @@ parameters:
         # Les fonctions globales utilisent des tableaux sans typage des valeurs.
         # À faire progressivement, mais on ignore pour maintenir le niveau 6.
         - '#no value type specified in iterable type array#'
+        # Stub PHPStan erroné : Imagick::getImageChannelStatistics() renvoie un
+        # tableau indexé par canal (Imagick::CHANNEL_*), pas les statistiques à plat.
+        -
+            identifier: offsetAccess.notFound
+            path: app/races.php
 
     reportUnmatchedIgnoredErrors: false

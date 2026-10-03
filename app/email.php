@@ -39,7 +39,7 @@ function build_email_headers(string $from, string $appName, array $extra = []): 
         'From' => sprintf('=?UTF-8?B?%s?= <%s>', base64_encode($appName), $from),
         'MIME-Version' => '1.0',
         'Content-Type' => 'text/html; charset=UTF-8',
-        'Content-Transfer-Encoding' => '8bit',
+        'Content-Transfer-Encoding' => 'base64',
     ];
 
     foreach ($extra as $key => $value) {
@@ -88,13 +88,17 @@ function send_email(string $to, string $subject, string $body, array $headers = 
     $appName = $config['app_name'] ?? 'Adherents';
     $encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $headerStr = build_email_headers($from, $appName, $headers);
+    // Base64 en lignes de 76 caractères : respecte la limite SMTP de 998
+    // caractères par ligne, et aucune ligne ne peut commencer par "." (qui
+    // terminerait prématurément le DATA SMTP sans "dot-stuffing").
+    $encodedBody = chunk_split(base64_encode($body), 76, "\r\n");
 
     if (smtp_enabled()) {
         error_log("Email via SMTP: To: $to | Subject: $subject | From: $from");
-        $result = send_email_smtp_auth($to, $from, $appName, $encodedSubject, $body, $headerStr);
+        $result = send_email_smtp_auth($to, $from, $appName, $encodedSubject, $encodedBody, $headerStr);
     } else {
         error_log("Email via mail(): To: $to | Subject: $subject | From: $from");
-        $result = @mail($to, $encodedSubject, $body, $headerStr);
+        $result = @mail($to, $encodedSubject, $encodedBody, $headerStr);
     }
 
     if (!$result) {
@@ -113,7 +117,7 @@ function send_email(string $to, string $subject, string $body, array $headers = 
  * @param string $from          Expéditeur
  * @param string $appName       Nom de l'app (pour EHLO)
  * @param string $encodedSubject Sujet déjà encodé MIME
- * @param string $body          Corps HTML
+ * @param string $body          Corps HTML déjà encodé en base64 (cf. send_email())
  * @param string $headerStr     En-têtes formatés
  *
  * @return bool

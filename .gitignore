@@ -5,3 +5,6 @@ public/uploads/*
 !public/uploads/.gitkeep
 .vibe/
 sonar-scanner/
+
+# Paquets de déploiement FTP générés (skill deploiement-ftp)
+deploy/

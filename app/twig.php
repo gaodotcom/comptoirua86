@@ -100,7 +100,8 @@ function twig_render(string $template, array $vars = []): never
 
     // Variables communes injectées sur toutes les pages (config, utilisateur, flash).
     $common = [
-        'config' => app_config(),
+        // Sans les identifiants (base, SMTP, HelloAsso) : aucun template n'en a besoin.
+        'config' => array_diff_key(app_config(), array_flip(['db', 'smtp', 'helloasso'])),
         'user' => current_user(),
         'flashes' => pull_flash_messages(),
     ];

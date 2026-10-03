@@ -86,7 +86,7 @@
                                     {% for r in plan.new %}
                                     <tr>
                                         <td class="small">{{ r.end_date ? format_date(r.start_date) ~ ' → ' ~ format_date(r.end_date) : format_date(r.start_date) }}</td>
-                                        <td>{{ r.title }} <a href="{{ r.detail_url }}" target="_blank" rel="noopener" class="ms-1" title="Voir sur athle.fr"><i class="bi bi-box-arrow-up-right small"></i></a></td>
+                                        <td>{{ r.title }}{% if r.detail_url %} <a href="{{ r.detail_url }}" target="_blank" rel="noopener" class="ms-1" title="Voir sur athle.fr"><i class="bi bi-box-arrow-up-right small"></i></a>{% endif %}</td>
                                         <td class="small">{{ r.city ?: '—' }}</td>
                                     </tr>
                                     {% endfor %}
@@ -111,7 +111,7 @@
                                     {% for r in plan.existing %}
                                     <tr>
                                         <td class="small">{{ r.end_date ? format_date(r.start_date) ~ ' → ' ~ format_date(r.end_date) : format_date(r.start_date) }}</td>
-                                        <td>{{ r.title }} <a href="{{ r.detail_url }}" target="_blank" rel="noopener" class="ms-1" title="Voir sur athle.fr"><i class="bi bi-box-arrow-up-right small"></i></a></td>
+                                        <td>{{ r.title }}{% if r.detail_url %} <a href="{{ r.detail_url }}" target="_blank" rel="noopener" class="ms-1" title="Voir sur athle.fr"><i class="bi bi-box-arrow-up-right small"></i></a>{% endif %}</td>
                                         <td class="small">{{ r.city ?: '—' }}</td>
                                         <td class="small">
                                             {% if r.diffs is empty %}

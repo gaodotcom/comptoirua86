@@ -20,10 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identifier = trim((string) ($_POST['identifier'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
 
-    // Anti brute-force : au-delà de 10 échecs en 15 minutes pour un même
-    // identifiant, on refuse la tentative sans même vérifier le mot de passe.
+    // Anti brute-force par identifiant : 10 échecs en 15 minutes, ou 5 par heure
+    // pour un compte encore sans mot de passe personnel (connexion par date de
+    // naissance : jour et mois sont visibles sur l'accueil, seule l'année reste
+    // à deviner, et le premier connecté choisit le mot de passe du compte).
     $loginBucket = 'login:' . strtolower($identifier);
-    if (rate_limit_exceeded($loginBucket, 10, 900)) {
+    $loginMember = find_member_by_identifier($identifier);
+    $usesBirthDatePassword = $loginMember !== null && empty($loginMember['password_hash']);
+    [$maxAttempts, $windowSeconds] = $usesBirthDatePassword ? [5, 3600] : [10, 900];
+    if (rate_limit_exceeded($loginBucket, $maxAttempts, $windowSeconds)) {
         set_flash('danger', 'Trop de tentatives. Merci de réessayer dans quelques minutes.');
         redirect_to('login', $redirectTarget !== null ? ['redirect' => $redirectTarget] : []);
     }

@@ -136,7 +136,7 @@ function parse_ffa_calendar_html(string $html, string $department = LOCAL_RACES_
 
         $dateLink = $xpath->query('.//a', $cells->item(0))->item(0);
 
-        if ($dateLink === null) {
+        if (!$dateLink instanceof DOMElement) {
             continue;
         }
 
@@ -173,8 +173,10 @@ function parse_ffa_calendar_html(string $html, string $department = LOCAL_RACES_
         $cityNode = $locationCell->childNodes->item(0);
         $city = $cityNode !== null ? trim($cityNode->textContent) : null;
 
-        $detailLink = $xpath->query('.//a[@target="_blank"]', $cells->item(6))->item(0);
-        $detailUrl = $detailLink !== null ? local_races_absolute_url($detailLink->getAttribute('href')) : null;
+        // Sans 7e cellule, query() avec un contexte null chercherait dans toute la page.
+        $detailCell = $cells->item(6);
+        $detailLink = $detailCell !== null ? $xpath->query('.//a[@target="_blank"]', $detailCell)->item(0) : null;
+        $detailUrl = $detailLink instanceof DOMElement ? local_races_absolute_url($detailLink->getAttribute('href')) : null;
 
         $competitionId = (int) $idMatch[1];
 
@@ -192,7 +194,7 @@ function parse_ffa_calendar_html(string $html, string $department = LOCAL_RACES_
             'end_date' => $endDate !== $startDate ? $endDate : null,
             'city' => $city,
             'department_code' => $departmentCode,
-            'level' => $cells->length > 4 ? trim((string) $cells->item(4)->textContent) : null,
+            'level' => trim((string) $cells->item(4)->textContent),
             'detail_url' => $detailUrl,
         ];
     }
