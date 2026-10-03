@@ -176,7 +176,11 @@
                             <label class="form-label d-block">Hébergement</label>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="accommodation" value="group" id="accommodation_group" {{ registration is null or (registration and registration.accommodation == 'group') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="accommodation_group">Avec le groupe, jusqu'au lundi midi, le lundi étant férié (c'est Ultramical86 qui gère la réservation).</label>
+                                <label class="form-check-label" for="accommodation_group">Avec le groupe, jusqu'au lundi midi, le lundi étant férié (c'est Ultramical86 qui gère la réservation)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="accommodation" value="group_and_family" id="accommodation_group_and_family" {{ registration and registration.accommodation == 'group_and_family' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="accommodation_group_and_family">Avec le groupe et ma famille (je gère ma réservation en fonction du groupe)</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="accommodation" value="independent" id="accommodation_independent" {{ registration and registration.accommodation == 'independent' ? 'checked' : '' }}>

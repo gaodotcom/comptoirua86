@@ -46,6 +46,7 @@ function page_subdir(string $pageName): string
         'calendar' => 'calendar',
         'weekend-club-2027' => 'weekend-2027',
         'weekend-club-2027-inscrits' => 'weekend-2027',
+        'weekend-club-2027-adhesion' => 'weekend-2027',
         'test-vma-2026' => 'test-vma-2026',
         'test-vma-2026-inscrits' => 'test-vma-2026',
         'test-vma-2026-adhesion' => 'test-vma-2026',

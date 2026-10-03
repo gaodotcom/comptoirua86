@@ -10,6 +10,8 @@ declare(strict_types=1);
  * préinscriptions, sont réservés aux admins.
  */
 
+require_weekend_2027_membership($user);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_valid_csrf('weekend-club-2027-inscrits');
 
@@ -71,7 +73,7 @@ if (is_admin() && ($_GET['export'] ?? '') === 'csv') {
             $r['shirt_size'],
             $r['emergency_contact_name'],
             $r['emergency_contact_phone'],
-            $r['accommodation'] === 'group' ? 'Avec Ultramical86' : 'Indépendant',
+            weekend_2027_accommodation_label($r['accommodation']),
             $r['license_number'],
             $r['created_at'],
             $r['updated_at'],

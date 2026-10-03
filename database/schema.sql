@@ -204,7 +204,7 @@ CREATE TABLE IF NOT EXISTS weekend_2027_registrations (
     shirt_size ENUM('XS', 'S', 'M', 'L', 'XL', 'XXL') NOT NULL,
     emergency_contact_name VARCHAR(200) NOT NULL,
     emergency_contact_phone VARCHAR(30) NOT NULL,
-    accommodation ENUM('group', 'independent') NOT NULL,
+    accommodation ENUM('group', 'group_and_family', 'independent') NOT NULL,
     license_number VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -224,6 +224,7 @@ CREATE TABLE IF NOT EXISTS weekend_2027_registrations (
 -- CREATE TABLE ci-dessus ne suffisent pas à les rajouter).
 ALTER TABLE weekend_2027_registrations ADD COLUMN IF NOT EXISTS sunday_lunch TINYINT(1) NOT NULL DEFAULT 0 AFTER bivouac;
 ALTER TABLE weekend_2027_registrations ADD COLUMN IF NOT EXISTS cancellation_insurance TINYINT(1) NOT NULL DEFAULT 0 AFTER sunday_lunch;
+ALTER TABLE weekend_2027_registrations MODIFY COLUMN accommodation ENUM('group', 'group_and_family', 'independent') NOT NULL;
 
 CREATE TABLE IF NOT EXISTS weekend_2027_registration_courses (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

@@ -51,7 +51,7 @@
                         {% if r.team_mode %}<div><i class="bi bi-people me-1"></i>{{ r.team_mode == 'duo' ? 'Duo avec ' ~ r.duo_partner_first_name ~ ' ' ~ r.duo_partner_last_name : 'Solo' }}</div>{% endif %}
                         {% if r.bivouac %}<div><i class="bi bi-moon-stars me-1"></i>Bivouac</div>{% endif %}
                         <div><i class="bi bi-{{ r.member_gender == 'F' ? 'person-standing-dress' : 'person-standing' }} me-1"></i>Maillot {{ r.shirt_size }}</div>
-                        <div><i class="bi bi-house me-1"></i>{{ r.accommodation == 'group' ? 'Avec Ultramical86' : 'Indépendant' }}</div>
+                        <div><i class="bi bi-house me-1"></i>{{ weekend_2027_accommodation_label(r.accommodation) }}</div>
                     </div>
                     {% endif %}
                 </div>

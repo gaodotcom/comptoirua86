@@ -70,6 +70,23 @@ function weekend_2027_course_label(string $courseCode): string
 }
 
 /**
+ * Libellé lisible d'un choix d'hébergement à partir de son code (retourne le
+ * code si inconnu).
+ *
+ * @return string
+ */
+function weekend_2027_accommodation_label(string $accommodationCode): string
+{
+	$labels = [
+		'group' => 'Avec Ultramical86',
+		'group_and_family' => 'Avec le groupe et ma famille',
+		'independent' => 'Indépendant',
+	];
+
+	return $labels[$accommodationCode] ?? $accommodationCode;
+}
+
+/**
  * Insère un espace de largeur nulle (invisible) entre chaque caractère d'un
  * numéro de téléphone, pour empêcher les clients mail (Gmail, Outlook,
  * Apple Mail...) de le détecter automatiquement comme un numéro cliquable.
@@ -171,7 +188,7 @@ function validate_weekend_2027_payload(array $payload, int $memberId): array
 	$emergencyPhone = trim((string) ($payload['emergency_contact_phone'] ?? ''));
 
 	$accommodation = trim((string) ($payload['accommodation'] ?? ''));
-	if (!in_array($accommodation, ['group', 'independent'], true)) {
+	if (!in_array($accommodation, ['group', 'group_and_family', 'independent'], true)) {
 		$errors[] = 'Merci de préciser votre choix d\'hébergement.';
 	}
 
@@ -357,7 +374,7 @@ function send_weekend_2027_registration_confirmation_email(int $memberId, array 
 	$summaryLines[] = ['label' => 'Taille de maillot', 'value' => $data['shirt_size']];
 	$summaryLines[] = [
 		'label' => 'Hébergement',
-		'value' => $data['accommodation'] === 'group' ? 'Avec Ultramical86' : 'Indépendant',
+		'value' => weekend_2027_accommodation_label($data['accommodation']),
 	];
 
 	if ($data['emergency_contact_name'] !== '' || $data['emergency_contact_phone'] !== '') {
@@ -669,4 +686,47 @@ function weekend_2027_set_closed(bool $closed, int $adminId): void
 		'closed_by' => $closed ? $adminId : null,
 		]
 	);
+}
+
+/** Saison d'adhésion requise pour accéder aux pages du week-end club. */
+const WEEKEND_2027_REQUIRED_SCHOOL_YEAR = '2026-2027';
+
+/**
+ * Indique si un membre peut accéder aux pages du week-end club : adhésion de la
+ * saison 2026-2027 requise (pour inciter au renouvellement). Les membres qui ne
+ * sont pas « adhérent » (admin, coach, bureau) et les comptes génériques sont
+ * exemptés, comme pour le contrôle d'accès au site.
+ *
+ * @param array $user Membre connecté (clés 'id', 'role', 'generic_account')
+ *
+ * @return bool
+ */
+function weekend_2027_member_allowed(array $user): bool
+{
+	if (($user['role'] ?? 'adherent') !== 'adherent' || (int) ($user['generic_account'] ?? 0) === 1) {
+		return true;
+	}
+
+	$stmt = app_pdo()->prepare('SELECT 1 FROM memberships WHERE member_id = :member_id AND school_year = :school_year LIMIT 1');
+	$stmt->execute(['member_id' => (int) $user['id'], 'school_year' => WEEKEND_2027_REQUIRED_SCHOOL_YEAR]);
+
+	return $stmt->fetchColumn() !== false;
+}
+
+/**
+ * Bloque l'accès (page explicative) si l'adhésion 2026-2027 est absente.
+ *
+ * @param array $user Membre connecté
+ *
+ * @return void
+ */
+function require_weekend_2027_membership(array $user): void
+{
+	if (weekend_2027_member_allowed($user)) {
+		return;
+	}
+
+	http_response_code(403);
+	require __DIR__ . '/../controllers/weekend-2027/weekend-club-2027-adhesion.php';
+	exit;
 }

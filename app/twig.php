@@ -66,6 +66,7 @@ function twig_instance(): \Twig\Environment
         // Week-end club Lozère Trail 2027
         'weekend_2027_courses',
         'weekend_2027_course_label',
+        'weekend_2027_accommodation_label',
         // News count for navbar
         'get_published_news',
         // Events count for navbar

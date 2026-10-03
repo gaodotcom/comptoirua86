@@ -8,6 +8,8 @@ declare(strict_types=1);
  * pour lui-même. Modifiable tant que les préinscriptions ne sont pas closes.
  */
 
+require_weekend_2027_membership($user);
+
 $memberId = (int) $user['id'];
 $closed = weekend_2027_is_closed();
 $registration = get_weekend_2027_registration_for_member($memberId);
