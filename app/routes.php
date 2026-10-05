@@ -46,6 +46,7 @@ function route_map(): array
         'races' => 'courses',
         'race-form' => 'partager-une-course',
         'calendar' => 'calendrier',
+        'calendar-feed' => 'flux-calendrier',
         'weekend-club-2027' => 'week-end-club-2027',
         'weekend-club-2027-inscrits' => 'week-end-club-2027-inscrits',
         'test-vma-2026' => 'test-vma-2026',

@@ -36,6 +36,9 @@ accès FTP uniquement).
     adhérents désactivés
   - import des adhésions HelloAsso
   - import du calendrier FFA (courses de la Vienne)
+  - flux iCal des événements publiés (`/flux-calendrier?token=...`, jeton
+    `CALENDAR_FEED_TOKEN` du `.env`) pour s'abonner depuis Google Agenda ;
+    l'URL complète est affichée sur la page agenda (bureau et admin)
   - page d'aide (`/aide`)
 - **Pages ponctuelles** (hors menu, réservées aux adhérents de la saison
   2026-2027) : préinscriptions au week-end club Lozère Trail 2027

@@ -169,3 +169,104 @@ function get_upcoming_events_count(): int
 
     return (int) $stmt->fetchColumn();
 }
+
+/**
+ * Récupère les événements publiés, du plus ancien au plus récent (flux iCal).
+ * @return array Liste des résultats
+ */
+function get_published_events(): array
+{
+    return app_pdo()->query(
+        'SELECT * FROM events WHERE published = 1 ORDER BY start_date ASC, id ASC'
+    )->fetchAll();
+}
+
+/**
+ * URL du flux iCal des événements, avec son jeton secret.
+ * @return string URL absolue, ou chaîne vide si le flux n'est pas configuré
+ */
+function events_feed_url(): string
+{
+    $token = (string) app_config()['calendar_feed_token'];
+
+    return $token === '' ? '' : page_url('calendar-feed', ['token' => $token]);
+}
+
+/**
+ * Échappe un texte pour une valeur iCalendar (RFC 5545 §3.3.11).
+ * @return string
+ */
+function ics_escape(string $text): string
+{
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+    return str_replace(['\\', ';', ',', "\n"], ['\\\\', '\;', '\\,', '\\n'], $text);
+}
+
+/**
+ * Plie une ligne iCalendar à 75 octets maximum (sans couper un caractère UTF-8).
+ * @return string
+ */
+function ics_fold(string $line): string
+{
+    $out = '';
+    $max = 75;
+
+    while (strlen($line) > $max) {
+        $cut = $max;
+        // Recule tant qu'on tombe au milieu d'un caractère multi-octets.
+        while ($cut > 0 && (ord($line[$cut]) & 0xC0) === 0x80) {
+            $cut--;
+        }
+        $out .= substr($line, 0, $cut) . "\r\n ";
+        $line = substr($line, $cut);
+        // Les lignes de continuation commencent par une espace : 74 octets utiles.
+        $max = 74;
+    }
+
+    return $out . $line;
+}
+
+/**
+ * Construit le flux iCalendar des événements publiés (journées entières).
+ *
+ * @param array $events Événements (lignes de la table events)
+ * @return string Contenu du fichier .ics
+ */
+function build_events_ics(array $events): string
+{
+    $host = (string) (parse_url(base_url(), PHP_URL_HOST) ?: 'comptoir');
+    $lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Ultramical86//Comptoir//FR',
+        'CALSCALE:GREGORIAN',
+        'X-WR-CALNAME:Agenda UA86',
+        'X-WR-TIMEZONE:' . date_default_timezone_get(),
+    ];
+
+    foreach ($events as $event) {
+        $start = new DateTimeImmutable((string) $event['start_date']);
+        // DTEND d'un événement « journée entière » est exclusif : lendemain du dernier jour.
+        $last = new DateTimeImmutable((string) ($event['end_date'] ?? $event['start_date']));
+        $stamp = (new DateTimeImmutable((string) ($event['created_at'] ?? 'now')))->setTimezone(new DateTimeZone('UTC'));
+
+        $lines[] = 'BEGIN:VEVENT';
+        $lines[] = 'UID:event-' . (int) $event['id'] . '@' . $host;
+        $lines[] = 'DTSTAMP:' . $stamp->format('Ymd\THis\Z');
+        $lines[] = 'DTSTART;VALUE=DATE:' . $start->format('Ymd');
+        $lines[] = 'DTEND;VALUE=DATE:' . $last->modify('+1 day')->format('Ymd');
+        $lines[] = 'SUMMARY:' . ics_escape((string) $event['title']);
+        if (($event['location'] ?? '') !== '') {
+            $lines[] = 'LOCATION:' . ics_escape((string) $event['location']);
+        }
+        if (($event['description'] ?? '') !== '') {
+            $lines[] = 'DESCRIPTION:' . ics_escape((string) $event['description']);
+        }
+        $lines[] = 'END:VEVENT';
+    }
+
+    $lines[] = 'END:VCALENDAR';
+
+    return implode("\r\n", array_map('ics_fold', $lines)) . "\r\n";
+}

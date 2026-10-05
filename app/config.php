@@ -58,6 +58,8 @@ return [
     'app_name' => $_env['APP_NAME'] ?? 'App',
     // base_url sert à construire les URL absolues (utile quand l'app n'est pas à la racine du domaine).
     'base_url' => rtrim($_env['BASE_URL'] ?? '', '/'),
+    // Jeton secret du flux iCal des événements (/flux-calendrier?token=...) ; vide = flux désactivé.
+    'calendar_feed_token' => $_env['CALENDAR_FEED_TOKEN'] ?? '',
     'facebook_url' => $_env['FACEBOOK_URL'] ?? '',
     'instagram_url' => $_env['INSTAGRAM_URL'] ?? '',
     'helloasso_url' => $_env['HELLOASSO_URL'] ?? '',

@@ -67,6 +67,7 @@ twig_render(
     [
     'title' => 'L\'agenda UA86',
     'upcomingEvents' => $upcomingEvents,
+    'feedUrl' => can_view_detailed_members() ? events_feed_url() : '',
     'pastEvents' => $pastEvents,
     ]
 );

@@ -8,6 +8,22 @@
         {% if is_admin() %}<a class="btn btn-outline-success btn-sm" href="{{ page_url('event-form') }}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline ms-1">Ajouter un événement</span></a>{% endif %}
     </div>
 </div>
+{% if can_view_detailed_members() %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body small">
+        <div class="fw-semibold mb-1"><i class="bi bi-calendar-plus me-1"></i>Synchroniser avec Google Agenda</div>
+        {% if feedUrl is not empty %}
+            <p class="text-body-secondary mb-2">Dans Google Agenda : « Autres agendas » → « À partir de l'URL », puis coller ce lien. <!-- Il est secret : ne le diffusez pas (les événements en brouillon n'y figurent pas). --></p>
+            <div class="input-group input-group-sm">
+                <input type="text" id="feed-url" class="form-control" value="{{ feedUrl }}" readonly onclick="this.select()">
+                <button type="button" class="btn btn-outline-primary" data-copy-target="feed-url"><i class="bi bi-clipboard me-1"></i><span class="copy-label">Copier</span></button>
+            </div>
+        {% else %}
+            <p class="text-body-secondary mb-0">Flux désactivé : renseigner <code>CALENDAR_FEED_TOKEN</code> dans le fichier <code>.env</code> du serveur.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% if upcomingEvents is empty and pastEvents is empty %}
     <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucun événement pour le moment.</div>
 {% else %}
@@ -77,4 +93,5 @@
     </div>
     {% endif %}
 {% endif %}
+<script src="{{ asset_url('public/js/copy-to-clipboard.js') }}"></script>
 {% endblock %}

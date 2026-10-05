@@ -418,7 +418,7 @@ function can_view_detailed_members(): bool
  * Cartographie page → niveau d'accès requis.
  * Source de vérité unique pour les permissions par page.
  *
- * @return string Niveau d'accès : 'guest'|'connected'|'coach'|'bureau'|'admin'
+ * @return string Niveau d'accès : 'guest'|'public'|'connected'|'coach'|'bureau'|'admin'
  */
 function page_access_level(string $page): string
 {
@@ -427,6 +427,8 @@ function page_access_level(string $page): string
         'login' => 'guest',
         'forgot-password' => 'guest',
         'reset-password' => 'guest',
+        // Flux iCal consommé par Google Calendar : protégé par un jeton dans l'URL, pas par la session.
+        'calendar-feed' => 'public',
         // Pages accessibles à tout adhérent connecté et actif.
         'home' => 'connected',
         'trombinoscope' => 'connected',
@@ -479,6 +481,11 @@ function enforce_page_access(string $page): void
         if (current_user() !== null) {
             redirect_to('home');
         }
+        return;
+    }
+
+    // Pages protégées par leurs propres moyens (jeton) : pas de session requise.
+    if ($level === 'public') {
         return;
     }
 

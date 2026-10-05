@@ -44,6 +44,7 @@ function page_subdir(string $pageName): string
         'races' => 'races',
         'race-form' => 'races',
         'calendar' => 'calendar',
+        'calendar-feed' => 'calendar',
         'weekend-club-2027' => 'weekend-2027',
         'weekend-club-2027-inscrits' => 'weekend-2027',
         'test-vma-2026' => 'test-vma-2026',
