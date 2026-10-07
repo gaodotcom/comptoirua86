@@ -62,6 +62,8 @@ accès FTP uniquement).
 - `public/` : CSS, JS, images, `uploads/` (fichiers des adhérents)
 - `database/schema.sql` : création complète de la base + compte admin initial
 - `database/migrations/` : scripts SQL datés pour les bases déjà déployées
+- `database/requetes/` : requêtes SQL d'extraction (lecture seule) à lancer
+  dans phpMyAdmin, ex. adhérents non renouvelés
 - `md/` : documentation fonctionnelle et dette technique
 
 Une nouvelle page se déclare à trois endroits : `app/routes.php` (slug),
