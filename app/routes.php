@@ -44,6 +44,7 @@ function route_map(): array
         'news' => 'actualites',
         'news-form' => 'actualite',
         'races' => 'courses',
+        'races-archives' => 'archives-courses',
         'race-form' => 'partager-une-course',
         'calendar' => 'calendrier',
         'calendar-feed' => 'flux-calendrier',

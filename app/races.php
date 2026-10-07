@@ -635,6 +635,83 @@ function get_all_races(): array
 }
 
 /**
+ * Saison de courses (1er septembre → 31 août) contenant une date.
+ *
+ * @param DateTimeImmutable $date Date quelconque
+ *
+ * @return string Saison au format AAAA-AAAA (ex: '2026-2027')
+ */
+function race_season_for_date(DateTimeImmutable $date): string
+{
+    $year = (int) $date->format('Y');
+    $startYear = (int) $date->format('n') >= 9 ? $year : $year - 1;
+
+    return $startYear . '-' . ($startYear + 1);
+}
+
+/**
+ * Bornes d'une saison de courses.
+ *
+ * @param string $season Saison au format AAAA-AAAA
+ *
+ * @return array{0: string, 1: string} [1er septembre, 31 août] au format Y-m-d
+ */
+function race_season_bounds(string $season): array
+{
+    $startYear = (int) substr($season, 0, 4);
+
+    return [$startYear . '-09-01', ($startYear + 1) . '-08-31'];
+}
+
+/**
+ * Saisons de courses disponibles pour les archives : celles qui ont au moins
+ * une course en base (selon la date de début), plus la saison en cours.
+ *
+ * @return array Saisons AAAA-AAAA, de la plus récente à la plus ancienne
+ */
+function get_race_seasons(): array
+{
+    $startYears = app_pdo()->query(
+        'SELECT DISTINCT YEAR(start_date) - (MONTH(start_date) < 9) AS start_year FROM races'
+    )->fetchAll(PDO::FETCH_COLUMN);
+
+    $seasons = [race_season_for_date(new DateTimeImmutable('today'))];
+    foreach ($startYears as $startYear) {
+        $seasons[] = (int) $startYear . '-' . ((int) $startYear + 1);
+    }
+
+    $seasons = array_unique($seasons);
+    rsort($seasons);
+
+    return $seasons;
+}
+
+/**
+ * Récupère les courses terminées (date de fin, ou de début à défaut, antérieure à aujourd'hui)
+ * qui commencent entre deux dates, de la plus ancienne à la plus récente.
+ * Inclut le nom du créateur.
+ *
+ * @param string $from Premier jour (Y-m-d)
+ * @param string $to   Dernier jour (Y-m-d)
+ *
+ * @return array Liste des courses
+ */
+function get_past_races_between(string $from, string $to): array
+{
+    $stmt = app_pdo()->prepare(
+        'SELECT r.*, m.first_name AS author_first_name, m.last_name AS author_last_name, m.photo_path AS author_photo_path, m.generic_account AS author_generic_account
+         FROM races r
+         LEFT JOIN members m ON m.id = r.created_by
+         WHERE r.start_date BETWEEN :from AND :to
+           AND COALESCE(r.end_date, r.start_date) < CURDATE()
+         ORDER BY r.start_date ASC, r.title ASC'
+    );
+    $stmt->execute(['from' => $from, 'to' => $to]);
+
+    return $stmt->fetchAll();
+}
+
+/**
  * Récupère les prochaines courses (date de début >= aujourd'hui),
  * triées par date croissante, limitées à $limit résultats.
  *

@@ -42,6 +42,7 @@ function page_subdir(string $pageName): string
         'news' => 'news',
         'news-form' => 'news',
         'races' => 'races',
+        'races-archives' => 'races',
         'race-form' => 'races',
         'calendar' => 'calendar',
         'calendar-feed' => 'calendar',

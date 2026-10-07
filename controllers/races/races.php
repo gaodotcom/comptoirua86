@@ -6,7 +6,8 @@ declare(strict_types=1);
  * Liste des courses partagées par les adhérents.
  * Gère la participation (interested/registered) d'un membre à une course et la
  * suppression d'une course (par son auteur ou un admin). Les courses sont séparées
- * en à venir / passées. Le filtre ?filter=mine restreint la liste aux courses que
+ * en à venir / passées (celles terminées depuis plus de 3 semaines ne sont plus
+ * affichées : voir races-archives). Le filtre ?filter=mine restreint la liste aux courses que
  * l'utilisateur a créées ou auxquelles il a répondu.
  */
 
@@ -42,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $today = (new DateTimeImmutable('today'))->format('Y-m-d');
+// Les courses passées ne restent affichées que 3 semaines ; au-delà, voir les archives (bureau/admin).
+$pastCutoff = (new DateTimeImmutable('today'))->modify('-3 weeks')->format('Y-m-d');
 $allRaces = get_all_races();
 // Filtre optionnel : ne montrer que les courses qui me concernent.
 $mineOnly = ($_GET['filter'] ?? '') === 'mine';
@@ -54,7 +57,7 @@ foreach ($allRaces as $race) {
     $re = (string) ($race['end_date'] ?? $race['start_date']);
     if ($re >= $today) {
         $upcomingRaces[] = $race;
-    } else {
+    } elseif ($re >= $pastCutoff) {
         $pastRaces[] = $race;
     }
 }

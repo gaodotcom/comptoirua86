@@ -445,6 +445,7 @@ function page_access_level(string $page): string
         'training-edit' => 'coach',
         // Pages réservées au bureau (ou admin).
         'inactive-members' => 'bureau',
+        'races-archives' => 'bureau',
         // Pages réservées à l'administrateur.
         'admin-guide' => 'admin',
         'event-form' => 'admin',
