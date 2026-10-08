@@ -29,7 +29,7 @@ services:
     ports:
       - "3311:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - ./volumes/comptoir_db:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
   phpmyadmin:
@@ -79,7 +79,6 @@ services:
       - sonar_ext:/opt/sonarqube/extensions
 
 volumes:
-  db_data:
   sonar_db_data:
   sonar_data:
   sonar_logs:

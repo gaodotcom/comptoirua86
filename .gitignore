@@ -8,3 +8,6 @@ sonar-scanner/
 
 # vendor/ de prod généré pour l'envoi FTP (skill vendor-prod)
 deploy/
+
+# données MariaDB locales (bind mount docker)
+volumes/
