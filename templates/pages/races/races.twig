@@ -78,7 +78,7 @@
         </div>
     {% endif %}
     {% if pastRaceCards is not empty %}
-        <h2 class="h4 text-secondary mb-3 fw-semibold">Les courses passées</h2>
+        <h2 class="h4 text-secondary mb-3 fw-semibold">Les courses récentes</h2>
         <div class="row g-3">
             {% for card in pastRaceCards %}
                 {% set race = card.race %}{% set responses = card.responses %}{% set canEdit = card.canEdit %}
