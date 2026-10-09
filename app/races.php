@@ -490,6 +490,26 @@ function create_race(array $payload): void
     }
 
     $pdo = app_pdo();
+
+    // Anti-doublon : un double envoi du formulaire (double tap, page lente sur
+    // mobile) ne doit pas créer deux fois la même course.
+    $dup = $pdo->prepare(
+        'SELECT id FROM races
+         WHERE title = :title AND start_date = :start_date AND created_by <=> :created_by
+           AND created_at >= (NOW() - INTERVAL 5 MINUTE)
+         LIMIT 1'
+    );
+    $dup->execute(
+        [
+        'title' => $data['title'],
+        'start_date' => $data['start_date'],
+        'created_by' => $data['created_by'] !== null && $data['created_by'] > 0 ? $data['created_by'] : null,
+        ]
+    );
+    if ($dup->fetchColumn() !== false) {
+        return;
+    }
+
     $stmt = $pdo->prepare(
         'INSERT INTO races (title, start_date, end_date, location, distances, website_url, registration_info, created_by)
          VALUES (:title, :start_date, :end_date, :location, :distances, :website_url, :registration_info, :created_by)'

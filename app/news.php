@@ -31,6 +31,24 @@ function create_news(array $payload): void
         throw new RuntimeException('Le contenu est obligatoire.');
     }
 
+    // Anti-doublon : un double envoi du formulaire ne doit pas créer deux fois l'actualité.
+    $dup = app_pdo()->prepare(
+        'SELECT id FROM news
+         WHERE title = :title AND content = :content AND created_by <=> :created_by
+           AND created_at >= (NOW() - INTERVAL 5 MINUTE)
+         LIMIT 1'
+    );
+    $dup->execute(
+        [
+        'title' => $title,
+        'content' => $content,
+        'created_by' => $createdBy > 0 ? $createdBy : null,
+        ]
+    );
+    if ($dup->fetchColumn() !== false) {
+        return;
+    }
+
     // Nouvelle actualité en première position de l'ordre d'affichage.
     $nextSortOrder = (int) app_pdo()->query('SELECT COALESCE(MIN(sort_order), 1) - 1 FROM news')->fetchColumn();
 

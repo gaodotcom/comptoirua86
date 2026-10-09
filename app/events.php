@@ -61,6 +61,24 @@ function create_event(array $payload): void
         throw new RuntimeException(implode(' ', $errors));
     }
 
+    // Anti-doublon : un double envoi du formulaire ne doit pas créer deux fois l'événement.
+    $dup = app_pdo()->prepare(
+        'SELECT id FROM events
+         WHERE title = :title AND start_date = :start_date AND created_by <=> :created_by
+           AND created_at >= (NOW() - INTERVAL 5 MINUTE)
+         LIMIT 1'
+    );
+    $dup->execute(
+        [
+        'title' => $data['title'],
+        'start_date' => $data['start_date'],
+        'created_by' => $data['created_by'] > 0 ? $data['created_by'] : null,
+        ]
+    );
+    if ($dup->fetchColumn() !== false) {
+        return;
+    }
+
     $stmt = app_pdo()->prepare(
         'INSERT INTO events (title, start_date, end_date, location, description, published, created_by)
          VALUES (:title, :start_date, :end_date, :location, :description, :published, :created_by)'

@@ -293,6 +293,62 @@ function helloasso_fetch_item_detail(int $itemId): array
 }
 
 /**
+ * Récupère le détail de plusieurs items en parallèle (curl_multi), par lots, pour
+ * éviter un aller-retour réseau séquentiel par adhérent.
+ *
+ * Un item dont la requête échoue (réseau, 429, 5xx...) est simplement absent du
+ * résultat : l'appelant retombe alors sur helloasso_fetch_item_detail(), qui lève
+ * l'erreur détaillée.
+ *
+ * @param int[] $itemIds     Identifiants des items
+ * @param int   $concurrency Nombre de requêtes simultanées
+ *
+ * @return array<int, array> Détails indexés par identifiant d'item
+ */
+function helloasso_fetch_item_details(array $itemIds, int $concurrency = 10): array
+{
+    $cfg = helloasso_config();
+    $token = helloasso_fetch_access_token();
+    $details = [];
+
+    foreach (array_chunk(array_values(array_unique($itemIds)), $concurrency) as $chunk) {
+        $mh = curl_multi_init();
+        $handles = [];
+
+        foreach ($chunk as $id) {
+            $ch = curl_init(rtrim($cfg['api_base'], '/') . '/items/' . $id . '?withDetails=true');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $token, 'Accept: application/json']);
+            curl_multi_add_handle($mh, $ch);
+            $handles[$id] = $ch;
+        }
+
+        do {
+            $status = curl_multi_exec($mh, $running);
+            if ($running > 0) {
+                curl_multi_select($mh, 1.0);
+            }
+        } while ($running > 0 && $status === CURLM_OK);
+
+        foreach ($handles as $id => $ch) {
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $data = json_decode((string) curl_multi_getcontent($ch), true);
+            if (curl_errno($ch) === 0 && $code < 400 && is_array($data)) {
+                $details[$id] = $data;
+            }
+            curl_multi_remove_handle($mh, $ch);
+            curl_close($ch);
+        }
+
+        curl_multi_close($mh);
+    }
+
+    return $details;
+}
+
+/**
  * Normalise un libellé de champ pour la comparaison : minuscules, sans
  * accents, espaces regroupés. Utilisée pour reconnaître les customFields
  * quel que soit le libellé exact choisi par l'association.
@@ -751,6 +807,15 @@ function helloasso_build_import_plan(string $slug, string $mode = 'complet'): ar
     // même personne (voir fusion plus bas).
     $matchedByMemberId = [];
 
+    // Détails des items d'adhésion (hors dons) récupérés en parallèle.
+    $detailIds = [];
+    foreach ($items as $it) {
+        if (trim((string) ($it['user']['firstName'] ?? '') . ($it['user']['lastName'] ?? '')) !== '') {
+            $detailIds[] = (int) ($it['id'] ?? 0);
+        }
+    }
+    $details = helloasso_fetch_item_details($detailIds);
+
     foreach ($items as $it) {
         $userFn = trim((string) ($it['user']['firstName'] ?? ''));
         $userLn = trim((string) ($it['user']['lastName'] ?? ''));
@@ -760,8 +825,10 @@ function helloasso_build_import_plan(string $slug, string $mode = 'complet'): ar
             continue;
         }
 
-        // Détail de l'item pour récupérer les customFields.
-        $detail = helloasso_fetch_item_detail((int) ($it['id'] ?? 0));
+        // Détail de l'item pour récupérer les customFields (repli séquentiel si
+        // la requête parallèle a échoué : lève l'erreur détaillée).
+        $itemId = (int) ($it['id'] ?? 0);
+        $detail = $details[$itemId] ?? helloasso_fetch_item_detail($itemId);
         $memberData = helloasso_extract_member_data($detail['customFields'] ?? []);
 
         // Don cumulé de la même commande (items avec user vide).
