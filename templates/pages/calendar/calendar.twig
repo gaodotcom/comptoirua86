@@ -112,7 +112,6 @@
                                         <div>
                                             {{ macros.item_icon(item) }}
                                             {% if item.url %}<a href="{{ item.url }}" class="text-decoration-none fw-semibold"{% if item.type == 'ffa_race' %} target="_blank" rel="noopener"{% endif %}>{{ item.title }}</a>{% else %}<strong>{{ item.title }}</strong>{% endif %}
-                                            {% if item.draft %}<span class="badge text-bg-secondary fw-normal ms-1">Brouillon</span>{% endif %}
                                         </div>
                                         <div class="small text-secondary">
                                             {{ item.dates }}

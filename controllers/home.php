@@ -16,10 +16,8 @@ $lastTraining = !empty($trainings) ? $trainings[0] : null;
 $birthdays = get_next_birthdays(5);
 
 $today = (new DateTimeImmutable('today'))->format('Y-m-d');
-$allEvents = get_events();
-if (!is_admin()) {
-    $allEvents = array_filter($allEvents, fn ($e) => (int) ($e['published'] ?? 1) === 1);
-}
+// Les brouillons n'apparaissent pas sur l'accueil, même pour l'admin (ils sont gérés dans la page Agenda).
+$allEvents = array_filter(get_events(), fn ($e) => (int) ($e['published'] ?? 1) === 1);
 $upcomingEvents = [];
 $pastEvents = [];
 

@@ -4,7 +4,6 @@
 {% else %}
     <ul class="list-group list-group-flush">
         {% for event in upcomingEvents|slice(0, 3) %}
-            {% if event.published or is_admin() %}
             <li class="list-group-item px-0">
                 <div class="d-flex align-items-start">
                     <i class="bi bi-calendar-event me-2"></i>
@@ -22,7 +21,6 @@
                 </div>
                 {% endif %}
             </li>
-            {% endif %}
         {% endfor %}
     </ul>
     <div class="text-center mt-2">

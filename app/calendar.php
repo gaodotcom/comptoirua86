@@ -92,12 +92,11 @@ function get_calendar_items(string $from, string $to): array
     $pdo = app_pdo();
     $days = [];
 
-    // Événements UA86 (les brouillons ne sont visibles que par l'admin).
-    $publishedClause = is_admin() ? '' : ' AND published = 1';
+    // Événements UA86 publiés uniquement (les brouillons sont gérés dans la page Agenda).
     $stmt = $pdo->prepare(
-        'SELECT id, title, start_date, end_date, location, published
+        'SELECT id, title, start_date, end_date, location
          FROM events
-         WHERE start_date <= :to AND COALESCE(end_date, start_date) >= :from' . $publishedClause . '
+         WHERE start_date <= :to AND COALESCE(end_date, start_date) >= :from AND published = 1
          ORDER BY start_date ASC, title ASC'
     );
     $stmt->execute(['from' => $from, 'to' => $to]);
@@ -110,7 +109,6 @@ function get_calendar_items(string $from, string $to): array
             'details' => $event['location'],
             'dates' => format_date_range((string) $event['start_date'], $event['end_date']),
             'url' => page_url('events') . '#evenement-' . (int) $event['id'],
-            'draft' => (int) $event['published'] !== 1,
         ], (string) $event['start_date'], $end, $from, $to);
     }
 
