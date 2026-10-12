@@ -90,6 +90,20 @@
 
 }
 
+/* Pictos des raccourcis de la home : plus petits en mobile (tuiles en col-6) */
+.home-shortcut-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.1rem;
+}
+@media (min-width: 768px) {
+  .home-shortcut-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+  }
+}
+
 /* Course proposée par un compte générique (ex. le compte "Ultramical86" pour
    le WE club) plutôt que par un adhérent : fond plus marqué pour la distinguer
    au premier coup d'oeil dans la liste des courses. */
