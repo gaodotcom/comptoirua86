@@ -70,8 +70,8 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body p-4">
                 <h2 class="h5 mb-3">Informations personnelles</h2>
-                <p class="text-secondary mb-1">{{ profileUser.address ~ ' - ' ~ profileUser.postal_code ~ ' ' ~ profileUser.city }}</p>
-                <p class="text-secondary mb-1">Email : {{ profileUser.email ~ ' - Téléphone : ' ~ format_phone(profileUser.phone) }}</p>
+                <p class="text-secondary mb-1">{{ profileUser.address }}<br class="d-md-none"><span class="d-none d-md-inline"> - </span>{{ profileUser.postal_code ~ ' ' ~ profileUser.city }}</p>
+                <p class="text-secondary mb-1">Email : {{ profileUser.email }}<br class="d-md-none"><span class="d-none d-md-inline"> - </span>Téléphone : {{ format_phone(profileUser.phone) }}</p>
                 <p class="text-secondary mb-1">Date de naissance : {{ format_date(profileUser.date_of_birth ?? '') }}</p>
                 {% if not isViewingOther and not is_admin() %}
                     <div class="alert alert-warning mb-0 mt-3">Pour faire modifier tes informations personnelles, tu dois contacter un membre du bureau.</div>
