@@ -543,7 +543,7 @@ function create_race(array $payload): void
 function get_race_by_id(int $id): ?array
 {
     $stmt = app_pdo()->prepare(
-        'SELECT r.*, m.first_name AS author_first_name, m.last_name AS author_last_name, m.photo_path AS author_photo_path
+        'SELECT r.*, ' . race_author_columns_sql() . '
          FROM races r
          LEFT JOIN members m ON m.id = r.created_by
          WHERE r.id = :id'
@@ -645,7 +645,7 @@ function delete_race(int $id): void
 function get_all_races(): array
 {
     $stmt = app_pdo()->query(
-        'SELECT r.*, m.first_name AS author_first_name, m.last_name AS author_last_name, m.photo_path AS author_photo_path, m.generic_account AS author_generic_account
+        'SELECT r.*, ' . race_author_columns_sql() . '
          FROM races r
          LEFT JOIN members m ON m.id = r.created_by
          ORDER BY r.start_date DESC'
@@ -719,7 +719,7 @@ function get_race_seasons(): array
 function get_past_races_between(string $from, string $to): array
 {
     $stmt = app_pdo()->prepare(
-        'SELECT r.*, m.first_name AS author_first_name, m.last_name AS author_last_name, m.photo_path AS author_photo_path, m.generic_account AS author_generic_account
+        'SELECT r.*, ' . race_author_columns_sql() . '
          FROM races r
          LEFT JOIN members m ON m.id = r.created_by
          WHERE r.start_date BETWEEN :from AND :to
@@ -755,6 +755,36 @@ function get_upcoming_races(int $limit = 2): array
 }
 
 /**
+ * Condition SQL : le membre $alias a une adhésion sur une saison en cours
+ * (ou est un compte générique).
+ */
+function race_member_is_current_sql(string $alias = 'm'): string
+{
+    return "({$alias}.generic_account = 1 OR (
+        {$alias}.deleted_at IS NULL AND EXISTS (
+            SELECT 1 FROM memberships ms
+            WHERE ms.member_id = {$alias}.id
+              AND ms.school_year IN (SELECT school_year FROM active_school_years)
+        )
+    ))";
+}
+
+/**
+ * Colonnes SQL de l'auteur d'une course (jointure `members m`). Un auteur sans
+ * saison en cours est anonymisé à l'affichage : « Adhérent Ultramical86 »,
+ * sans photo, présenté comme compte générique. La base n'est pas modifiée.
+ */
+function race_author_columns_sql(): string
+{
+    $current = race_member_is_current_sql('m');
+
+    return "CASE WHEN m.id IS NULL OR {$current} THEN m.first_name ELSE 'Adhérent' END AS author_first_name,
+            CASE WHEN m.id IS NULL OR {$current} THEN m.last_name ELSE 'Ultramical86' END AS author_last_name,
+            CASE WHEN m.id IS NULL OR {$current} THEN m.photo_path ELSE NULL END AS author_photo_path,
+            CASE WHEN m.id IS NULL OR {$current} THEN m.generic_account ELSE 1 END AS author_generic_account";
+}
+
+/**
  * Récupère les réponses (intéressés et inscrits) pour une course donnée.
  *
  * @param int $raceId Identifiant de la course
@@ -768,6 +798,7 @@ function get_race_responses(int $raceId): array
          FROM race_responses rr
          INNER JOIN members m ON m.id = rr.member_id
          WHERE rr.race_id = :race_id
+           AND ' . race_member_is_current_sql('m') . '
          ORDER BY m.first_name ASC, m.last_name ASC'
     );
 

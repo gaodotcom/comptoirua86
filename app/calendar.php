@@ -115,7 +115,7 @@ function get_calendar_items(string $from, string $to): array
     // Courses partagées par les adhérents.
     $stmt = $pdo->prepare(
         'SELECT r.id, r.title, r.start_date, r.end_date, r.location, r.website_url, r.favicon_path,
-                (SELECT COUNT(*) FROM race_responses rr WHERE rr.race_id = r.id AND rr.status = \'registered\') AS registered_count
+                (SELECT COUNT(*) FROM race_responses rr INNER JOIN members rm ON rm.id = rr.member_id WHERE rr.race_id = r.id AND rr.status = \'registered\' AND ' . race_member_is_current_sql('rm') . ') AS registered_count
          FROM races r
          WHERE r.start_date <= :to AND COALESCE(r.end_date, r.start_date) >= :from
          ORDER BY r.start_date ASC, r.title ASC'

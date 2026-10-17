@@ -541,7 +541,8 @@ function add_membership_for_member(int $memberId, array $payload): array
 }
 
 /**
- * Calcule les $limit prochains anniversaires parmi les membres actifs.
+ * Calcule les $limit prochains anniversaires parmi les membres actifs
+ * (non supprimés, avec une adhésion sur une saison en cours).
  * Retourne un tableau trié par proximité, chaque entrée contenant
  * la date du prochain anniversaire et le nombre de jours restants.
  *
@@ -555,6 +556,11 @@ function get_next_birthdays(int $limit = 5): array
          WHERE date_of_birth IS NOT NULL
            AND generic_account = 0
            AND deleted_at IS NULL
+           AND EXISTS (
+               SELECT 1 FROM memberships ms
+               WHERE ms.member_id = members.id
+                 AND ms.school_year IN (SELECT school_year FROM active_school_years)
+           )
          ORDER BY month(date_of_birth) ASC, day(date_of_birth) ASC'
     );
 
