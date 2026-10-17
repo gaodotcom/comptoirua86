@@ -26,6 +26,17 @@ git diff --name-only | rsync -avz \
 - `deployComptoir` : simulation
 - `deployComptoir -y` (ou `--go`) : envoi réel
 
+## Récupérer les uploads de la prod
+
+`public/uploads/` n'est pas versionné (images des adhérents, pictos des courses, etc.). Pour le rapatrier en local :
+
+`~/bin/pullUploadsComptoir` (hors dépôt) :
+
+- `pullUploadsComptoir` : simulation
+- `pullUploadsComptoir -y` (ou `--go`) : copie réelle de `Ionos-UA86:~/comptoir/public/uploads/` vers `public/uploads/`
+
+Aucune suppression en local, et un fichier local plus récent n'est pas écrasé. Une erreur rsync « failed to set times » sur `uploads/races` est sans gravité (dossier créé par Docker en `www-data` ; les pictos sont régénérés à la modification d'une course).
+
 ## À savoir
 
 - `md/`, `deploy/`, `docker/`, `.claude/`, `.vscode/`, `CLAUDE.md` et `README.md` sont exclus : inutiles en prod.
