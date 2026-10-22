@@ -66,6 +66,7 @@ return [
     'web_url' => $_env['WEB_URL'] ?? '',
     'mail_contact' => $_env['MAIL_CONTACT'] ?? '',
     'mail_noreply' => $_env['MAIL_NOREPLY'] ?? '',
+    'mail_newsletter' => $_env['MAIL_NEWSLETTER'] ?? '',
     'home_welcome_text' => $_env['HOME_WELCOME_TEXT'] ?? 'Au menu du Comptoir :
         les entraînements du coach, tes projets de course, le trombinoscope des adhérents,
         le calendrier et des infos sur la vie d\'Ultramical86.',

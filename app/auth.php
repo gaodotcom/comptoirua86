@@ -456,6 +456,7 @@ function page_access_level(string $page): string
         'helloasso-campaigns' => 'admin',
         'helloasso-import' => 'admin',
         'local-races-import' => 'admin',
+        'newsletter' => 'admin',
     ];
 
     return $map[$page] ?? 'connected';

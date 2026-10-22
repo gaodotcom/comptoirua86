@@ -25,6 +25,17 @@ function mail_from_address(): string
 }
 
 /**
+ * Renvoie l'adresse d'expédition de la newsletter, avec repli sur l'adresse
+ * d'expédition standard si MAIL_NEWSLETTER n'est pas renseignée.
+ *
+ * @return string
+ */
+function mail_newsletter_address(): string
+{
+    return app_config()['mail_newsletter'] ?: mail_from_address();
+}
+
+/**
  * Construit la chaîne d'en-têtes email standard.
  *
  * @param string $from    Adresse d'expédition
@@ -78,13 +89,14 @@ function smtp_enabled(): bool
  * @param string $subject Sujet du message
  * @param string $body    Corps du message (HTML)
  * @param array  $headers Headers additionnels (optionnel)
+ * @param string|null $from Adresse d'expédition (mail_from_address() par défaut)
  *
  * @return bool true si accepté, false sinon
  */
-function send_email(string $to, string $subject, string $body, array $headers = []): bool
+function send_email(string $to, string $subject, string $body, array $headers = [], ?string $from = null): bool
 {
     $config = app_config();
-    $from = mail_from_address();
+    $from = $from ?: mail_from_address();
     $appName = $config['app_name'] ?? 'Adherents';
     $encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $headerStr = build_email_headers($from, $appName, $headers);

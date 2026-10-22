@@ -51,6 +51,7 @@ function page_subdir(string $pageName): string
         'test-vma-2026' => 'test-vma-2026',
         'test-vma-2026-inscrits' => 'test-vma-2026',
         'local-races-import' => 'local-races',
+        'newsletter' => 'newsletter',
     ];
 
     return $mapping[$pageName] ?? '';

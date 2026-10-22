@@ -85,8 +85,9 @@ function save_uploaded_image(array $file, string $folder, ?int $memberId = null)
     }
 
     $extension = $allowedMimes[$mime];
-    // Nom unique : préfixe member_ + id + suffixe aléatoire, pour éviter les collisions.
-    $filename = 'member_' . ($memberId ?? 0) . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+    // Nom unique, préfixé selon le dossier (member_<id>_ ou training_) avec un suffixe aléatoire pour éviter les collisions.
+    $prefix = $folder === 'trainings' ? 'training_' : 'member_' . ($memberId ?? 0) . '_';
+    $filename = $prefix . bin2hex(random_bytes(4)) . '.' . $extension;
 
     $fsRoot = rtrim(app_config()['uploads_fs_root'], '/');
     $targetDirectory = $fsRoot . '/' . trim($folder, '/');

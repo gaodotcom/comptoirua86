@@ -1,0 +1,159 @@
+{# Newsletter hebdomadaire : styles en ligne et tableaux pour la compatibilité des clients mail. #}
+{% set ink = '#1f2d3a' %}
+{% set primary = '#0a92b4' %}
+{% set soft = '#eef6f9' %}
+{% set mois = {1:'janvier',2:'février',3:'mars',4:'avril',5:'mai',6:'juin',7:'juillet',8:'août',9:'septembre',10:'octobre',11:'novembre',12:'décembre'} %}
+{% macro section(title, icon) %}
+<tr><td style="padding:28px 4px 6px 4px;">
+    <div style="font-size:19px;color:#0a92b4;border-bottom:2px solid #0a92b4;padding-bottom:6px;">{{ icon }}&nbsp; {{ title }}</div>
+</td></tr>
+{% endmacro %}
+{# Texte libre : liens cliquables, stylés aux couleurs de la newsletter (style en ligne pour les clients mail). #}
+{% macro rich(text) %}{{ text_to_html(text)|replace({'<a ': '<a style="color:#0a92b4;text-decoration:underline;" '})|raw }}{% endmacro %}
+{# Case à cocher de l'aperçu admin (absente de l'email envoyé) : décocher exclut l'élément de l'envoi. #}
+{% macro chk(key, preview, inline = false) %}{% if preview %}<input type="checkbox" class="nl-chk" data-key="{{ key }}" checked style="{{ inline ? 'margin:0 4px 0 0;' : 'float:right;margin:2px 0 0 8px;' }}">{% endif %}{% endmacro %}
+{# Pastille de date (jour en gros, mois abrégé dessous) : bordure bleue, fond blanc. #}
+{% macro badge(date) %}
+{% set mois_court = {1:'janv.',2:'févr.',3:'mars',4:'avr.',5:'mai',6:'juin',7:'juil.',8:'août',9:'sept.',10:'oct.',11:'nov.',12:'déc.'} %}
+<table role="presentation" width="36" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="width:36px;border:1px solid #0a92b4;border-radius:6px;background:#ffffff;">
+    <tr><td align="center" style="padding:3px 0 0 0;font-size:20px;line-height:22px;font-weight:bold;color:#0a92b4;">{{ date|date('j') }}</td></tr>
+    <tr><td align="center" style="padding:0 0 3px 0;font-size:11px;line-height:13px;text-transform:uppercase;color:#0a92b4;">{{ mois_court[date|date('n')] }}</td></tr>
+</table>
+{% endmacro %}
+{% import _self as m %}
+{% set jours = {1:'lundi',2:'mardi',3:'mercredi',4:'jeudi',5:'vendredi',6:'samedi',7:'dimanche'} %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
+<title>Le Comptoir de la semaine</title>
+<style>
+    :root { color-scheme: light only; supported-color-schemes: light only; }
+    /* Neutralise les liens automatiques des clients mail (adresses, téléphones, dates) :
+       Gmail (web + appli), Apple Mail/iOS. Sans !important : le style en ligne
+       des vrais liens de la newsletter reste prioritaire. */
+    u + #body a, #MessageViewBody a, a[x-apple-data-detectors] { color: inherit; text-decoration: none; font-size: inherit; font-family: inherit; font-weight: inherit; line-height: inherit; }
+</style>
+</head>
+<body id="body" bgcolor="#ffffff" style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:{{ ink }};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="margin:0;padding:0;background:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);">
+
+{# En-tête pleine largeur #}
+<tr><td align="center" bgcolor="{{ primary }}" style="background:{{ primary }};padding:26px 8px;color:#ffffff;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+        <tr><td align="center" style="color:#ffffff;">
+            <img src="{{ logo_url }}" alt="Ultramical86" width="400" style="display:block;width:400px;max-width:100%;height:auto;margin:0 auto;border:0;opacity:.95;">
+            <div style="font-size:20px;font-weight:normal;line-height:1.2;text-transform:uppercase;margin-top:12px;opacity:.85;color:#ffffff;">Au menu de la semaine du {{ monday.format('j') }}{{ monday.format('j') == 1 ? 'er' : '' }} {{ mois[monday.format('n')] }}</div>
+        </td></tr>
+    </table>
+</td></tr>
+
+<tr><td align="center" style="padding:0 0 20px 0;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="width:100%;max-width:600px;background:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);color:#1f2d3a;">
+
+    {# Plan de la semaine #}
+    {% if training %}
+    {{ m.section('Le programme : ' ~ training.title|slice(0, 1)|lower ~ training.title|slice(1), '🏃') }}
+    <tr><td style="padding:6px 4px 0 4px;">
+        <img src="{{ site_url|trim('/') }}/{{ training.image_path|trim('/') }}" alt="{{ training.title }}" width="536" style="display:block;width:100%;height:auto;border-radius:6px;border:0;">
+        <div style="font-size:15px;line-height:1.55;margin-top:14px;">{{ m.rich(training.presentation_text) }}</div>
+    </td></tr>
+    {% endif %}
+
+    {# Courses ajoutées #}
+    {% if added_races %}
+    {{ m.section('Courses ajoutées la semaine dernière', '🆕') }}
+    <tr><td data-zone style="padding:6px 4px 0 4px;">
+        {% for race in added_races %}
+        <div data-item style="padding:12px 0;{{ loop.last ? '' : 'border-bottom:1px solid #e4e7eb;' }}">
+            {{ m.chk('race:' ~ race.id, preview) }}
+            <div style="font-size:15px;font-weight:bold;">{{ race.title }}</div>
+            <div style="font-size:13px;color:#52606d;margin-top:2px;">{{ race.start_date|date('d/m/Y') }}{% if race.location %} · {{ race.location_label }}{% endif %} · {{ race.distances }}</div>
+            {% if race.author_first_name %}<div style="font-size:12px;color:#7b8794;margin-top:2px;">Proposée par {{ race.author_first_name }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </td></tr>
+    {% endif %}
+
+    {# Courses à venir #}
+    {% if not upcoming_hidden %}
+    {{ m.section('Les courses à suivre cette semaine', '🏁') }}
+    <tr><td data-zone style="padding:6px 4px 0 4px;">
+        {% for race in upcoming_races %}
+        <table data-item role="presentation" width="100%" cellpadding="0" cellspacing="0" style="{{ loop.last ? '' : 'border-bottom:1px solid #e4e7eb;' }}">
+            <tr>
+                <td width="50" valign="top" style="padding:12px 0;">{{ m.badge(race.start_date) }}</td>
+                <td valign="top" style="padding:12px 0;">
+                    {{ m.chk('race:' ~ race.id, preview) }}
+                    <div style="font-size:13px;color:#52606d;">{{ race.end_date and race.end_date != race.start_date ? 'à partir de ' : '' }}{{ jours[race.start_date|date('N')] }}</div>
+                    <div style="font-size:15px;font-weight:bold;">{{ race.title }}</div>
+                    <div style="font-size:13px;color:#52606d;margin-top:2px;">{% if race.location %}{{ race.location_label }} · {% endif %}{{ race.distances }}</div>
+                </td>
+            </tr>
+        </table>
+        {% else %}
+        <div style="font-size:14px;color:#7b8794;padding-top:6px;">Pas de course cette semaine, les ultramicalistes s'entraînent pour les prochaines échéances.</div>
+        {% endfor %}
+    </td></tr>
+    {% endif %}
+
+    {# Anniversaires #}
+    {% if birthdays %}
+    {{ m.section('Joyeux anniversaire à…', '🍾🎉') }}
+    <tr><td data-zone style="padding:6px 4px 0 4px;">
+        {% for day in birthdays_by_day %}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="{{ loop.last ? '' : 'border-bottom:1px solid #e4e7eb;' }}">
+            <tr>
+                <td width="50" valign="top" style="padding:12px 0;">{{ m.badge(day.date) }}</td>
+                <td valign="middle" style="padding:12px 0;font-size:15px;line-height:1.5;">
+                    <div style="font-size:13px;color:#52606d;">{{ jours[day.date|date('N')] }}</div>
+                    {% for b in day.members %}<span data-item style="white-space:nowrap;">{{ m.chk('birthday:' ~ b.id, preview, true) }}<strong>{{ b.first_name }} {{ b.last_name }}</strong></span>{{ not loop.last ? ', ' : '' }} {% endfor %}
+                </td>
+            </tr>
+        </table>
+        {% endfor %}
+    </td></tr>
+    {% endif %}
+
+    {# Événements #}
+    {% if events %}
+    {{ m.section('Les prochains événements du club', '📅') }}
+    <tr><td data-zone style="padding:6px 4px 0 4px;">
+        {% for ev in events %}
+        <div data-item style="padding:12px 0;{{ loop.last ? '' : 'border-bottom:1px solid #e4e7eb;' }}">
+            {{ m.chk('event:' ~ ev.id, preview) }}
+            <div style="font-size:15px;font-weight:bold;">{{ ev.title }}</div>
+            <div style="font-size:13px;color:#52606d;">{{ ev.start_date|date('d/m/Y') }}{% if ev.end_date and ev.end_date != ev.start_date %} → {{ ev.end_date|date('d/m/Y') }}{% endif %}{% if ev.location %} · {{ ev.location }}{% endif %}</div>
+            {% if ev.description %}<div style="font-size:14px;line-height:1.5;margin-top:3px;">{{ m.rich(ev.description) }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </td></tr>
+    {% endif %}
+
+    {# Actualités #}
+    {% if news %}
+    {{ m.section('Actualités', '📢') }}
+    <tr><td data-zone style="padding:6px 4px 0 4px;">
+        {% for n in news %}
+        <div data-item style="padding:12px 0;{{ loop.last ? '' : 'border-bottom:1px solid #e4e7eb;' }}">
+            {{ m.chk('news:' ~ n.id, preview) }}
+            <div style="font-size:15px;font-weight:bold;">{{ n.title }}</div>
+            <div style="font-size:14px;line-height:1.5;margin-top:3px;">{{ m.rich(n.content) }}</div>
+        </div>
+        {% endfor %}
+    </td></tr>
+    {% endif %}
+
+    {# Pied #}
+    <tr><td align="center" style="padding:30px 4px;">
+        <a href="{{ site_url }}" style="display:inline-block;background:{{ primary }};color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 26px;border-radius:6px;">On se retrouve au stade ou au comptoir</a>
+        <div style="font-size:12px;color:#7b8794;margin-top:24px;">Ultramical86 · vous recevez ce message en tant qu'adhérent du club.</div>
+    </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -290,6 +290,19 @@ CREATE TABLE IF NOT EXISTS local_races (
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS newsletter_sends (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    week_start DATE NOT NULL,
+    recipient VARCHAR(190) NOT NULL,
+    sent_by INT UNSIGNED NULL,
+    sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_newsletter_sends_week (week_start),
+    CONSTRAINT fk_newsletter_sends_member
+        FOREIGN KEY (sent_by)
+        REFERENCES members(id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO members (role, last_name, first_name, username, email, password_hash, date_of_birth, phone, address, postal_code, city, whatsapp_opt_in)
 SELECT 'admin', 'Association', 'Admin', 'admin', 'admin@example.org', NULL, '1970-01-01', '', '', '', '', 0
 WHERE NOT EXISTS (

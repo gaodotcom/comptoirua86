@@ -53,6 +53,7 @@ function route_map(): array
         'test-vma-2026' => 'test-vma-2026',
         'test-vma-2026-inscrits' => 'test-vma-2026-inscrits',
         'local-races-import' => 'import-calendrier-ffa',
+        'newsletter' => 'newsletter',
     ];
 }
 

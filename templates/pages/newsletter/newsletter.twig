@@ -1,0 +1,58 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="d-flex align-items-baseline align-items-md-center gap-2 mb-3">
+    <i class="bi bi-envelope-paper fs-2 text-primary lh-1 ms-1 me-2 flex-shrink-0"></i>
+    <h1 class="h2 mb-0 flex-grow-1">Newsletter</h1>
+</div>
+
+{% if training.training is null %}
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Aucun plan d'entraînement publié : le bloc du coach est absent.</div>
+{% elseif not training.is_current %}
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Le coach n'a pas encore publié la semaine du {{ mondayIso|date('d/m/Y') }} : le plan affiché est celui du {{ format_date(training.training.week_start) }}.</div>
+{% endif %}
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="get" action="{{ page_url('newsletter') }}" class="row g-2 align-items-end mb-3">
+            <div class="col-auto">
+                <label class="form-label" for="date">Semaine du lundi</label>
+                <input class="form-control form-control-sm" type="date" id="date" name="date" value="{{ mondayIso }}">
+            </div>
+            <div class="col-auto"><button class="btn btn-outline-secondary btn-sm" type="submit">Afficher</button></div>
+        </form>
+        <form method="post" action="{{ page_url('newsletter', {'date': mondayIso}) }}" class="row g-2 align-items-end" id="send-form" data-own-email="{{ ownEmail }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="date" value="{{ mondayIso }}">
+            <div id="excluded-fields"></div>
+            <div class="col-md-6">
+                <label class="form-label" for="email">Destinataire</label>
+                <select class="form-select form-select-sm" id="email" name="email" required>
+                    {% for recipient in testRecipients %}
+                        <option value="{{ recipient }}" {{ recipient == testEmail ? 'selected' : '' }}>{{ recipient }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto"><button class="btn btn-success btn-sm" type="submit"><i class="bi bi-send me-1"></i><span id="send-label">Envoyer</span></button></div>
+        </form>
+        <div class="small text-muted mt-2"><i class="bi bi-check2-square me-1"></i>Décochez dans l'aperçu les éléments à ne pas envoyer ; un bloc dont tous les éléments sont décochés disparaît.</div>
+        <div class="small text-muted mt-2">
+            {% if lastSend %}
+                <i class="bi bi-clock-history me-1"></i>Dernier envoi de cette semaine : {{ lastSend.sent_at|date('d/m/Y à H:i') }} vers {{ lastSend.recipient }}.
+            {% else %}
+                <i class="bi bi-clock-history me-1"></i>Aucun envoi enregistré pour cette semaine.
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# TEMPORAIRE (dev) : bouton MailHog à supprimer avant le déploiement. #}
+{# <form method="post" action="{{ page_url('newsletter', {'date': mondayIso}) }}" class="mb-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="date" value="{{ mondayIso }}">
+    <input type="hidden" name="action" value="test_mailhog">
+    <button class="btn btn-warning btn-sm" type="submit"><i class="bi bi-bug me-1"></i>Test MailHog (dev)</button>
+</form> #}
+
+<iframe id="newsletter-preview" title="Aperçu de la newsletter" srcdoc="{{ html }}" style="width:100%;height:1400px;border:1px solid #ccc;border-radius:6px;background:#fff;"></iframe>
+<script src="{{ asset_url('public/js/newsletter.js') }}"></script>
+{% endblock %}
