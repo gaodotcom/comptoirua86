@@ -32,8 +32,6 @@
                 <h1 class="h4 mt-3 mb-1">{{ profileUser.first_name ~ ' ' ~ profileUser.last_name }}</h1>
                 {% if profileUser.username %}
                     <p class="text-secondary mb-0">Identifiant : {{ profileUser.username }}</p>
-                {% else %}
-                    <p class="text-secondary mb-0 text-warning"><em>Pas encore de nom d'utilisateur</em></p>
                 {% endif %}
                 <p class="text-secondary mb-0">Rôle : {{ role_label(profileUser.role) }}
                 {% if (profileUser.is_bureau ?? 0) == 1 %}
